@@ -43,7 +43,8 @@ out/
 /logs
 .env
 /data/
-/docs/
+/docs/*
+!/docs/diagrams/
 gradlew.bat
 
 ### macOS ###
