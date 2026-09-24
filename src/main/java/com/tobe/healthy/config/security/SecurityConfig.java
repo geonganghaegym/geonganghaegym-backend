@@ -80,7 +80,9 @@ public class SecurityConfig {
 			config.setAllowedOriginPatterns(List.of(
 				"http://localhost:3000",
 				"https://geonganghaejim.site",
-				"https://www.geonganghaejim.site"
+				"https://www.geonganghaejim.site",
+				"https://health.junghaebom.com",
+				"https://geonganghaegym.junghaebom.com"
 			));
 			config.setAllowCredentials(true);
 			return config;
