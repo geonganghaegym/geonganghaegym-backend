@@ -1,5 +1,7 @@
 package com.tobe.healthy.notification.application;
 
+import static com.tobe.healthy.common.Utils.WEB_BASE_URL;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -146,7 +148,7 @@ public class NotificationService {
 					NotificationType.FEEDBACK,
 					NotificationCategory.SCHEDULE,
 					null,
-					"https://main.to-be-healthy.shop/trainer/manage/feedback",
+					WEB_BASE_URL + "/trainer/manage/feedback",
 					null,
 					null
 				)

@@ -75,8 +75,7 @@ public class MemberAuthService {
 	}
 
 	private NonMember getNonmemberData(String uuid) {
-		String invitationLink = "https://main.to-be-healthy.shop/invite?type=student&uuid=" + uuid;
-		NonMember nonMember = nonMemberRepository.findByInvitationLink(invitationLink)
+		NonMember nonMember = nonMemberRepository.findByInvitationUuid(uuid)
 			.orElseThrow(() -> new CustomException(INVITE_LINK_NOT_FOUND));
 		return nonMember;
 	}

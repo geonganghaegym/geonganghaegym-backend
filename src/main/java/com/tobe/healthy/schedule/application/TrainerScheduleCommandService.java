@@ -1,5 +1,7 @@
 package com.tobe.healthy.schedule.application;
 
+import static com.tobe.healthy.common.Utils.WEB_BASE_URL;
+
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -239,7 +241,7 @@ public class TrainerScheduleCommandService {
 			NotificationType.RESERVE,
 			NotificationCategory.SCHEDULE,
 			null,
-			"https://main.to-be-healthy.shop/student/schedule?tab=myReservation",
+			WEB_BASE_URL + "/student/schedule?tab=myReservation",
 			schedule.getApplicant().getId(),
 			schedule.getApplicant().getName()
 		);
@@ -275,7 +277,7 @@ public class TrainerScheduleCommandService {
 			NotificationType.CANCEL,
 			NotificationCategory.SCHEDULE,
 			null,
-			"https://main.to-be-healthy.shop/student/schedule?tab=myReservation",
+			WEB_BASE_URL + "/student/schedule?tab=myReservation",
 			null,
 			null
 		);

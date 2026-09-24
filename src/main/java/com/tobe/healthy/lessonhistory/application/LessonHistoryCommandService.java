@@ -88,7 +88,7 @@ public class LessonHistoryCommandService {
 			NotificationType.WRITE.getContent(),
 			lessonHistory.getId(),
 			lessonHistory.getStudent().getId(),
-			"https://main.to-be-healthy.shop/student/log/" + lessonHistory.getId(),
+			WEB_BASE_URL + "/student/log/" + lessonHistory.getId(),
 			null,
 			null
 		);
@@ -216,7 +216,7 @@ public class LessonHistoryCommandService {
 				NotificationType.COMMENT.getContent(),
 				lessonHistory.getId(),
 				lessonHistory.getTrainer().getId(),
-				"https://main.to-be-healthy.shop/trainer/manage/" + lessonHistory.getStudent().getId() + "/log/"
+				WEB_BASE_URL + "/trainer/manage/" + lessonHistory.getStudent().getId() + "/log/"
 					+ lessonHistory.getId(),
 				lessonHistory.getStudent().getId(),
 				lessonHistory.getStudent().getName()
@@ -251,7 +251,7 @@ public class LessonHistoryCommandService {
 					NotificationType.REPLY.getContent(),
 					lessonHistory.getId(),
 					parentComment.getWriter().getId(),
-					"https://main.to-be-healthy.shop/student/log/" + lessonHistory.getId(),
+					WEB_BASE_URL + "/student/log/" + lessonHistory.getId(),
 					lessonHistory.getStudent().getId(),
 					lessonHistory.getStudent().getName()
 				);
@@ -261,7 +261,7 @@ public class LessonHistoryCommandService {
 					NotificationType.REPLY.getContent(),
 					lessonHistory.getId(),
 					parentComment.getWriter().getId(),
-					"https://main.to-be-healthy.shop/trainer/manage/" + lessonHistory.getStudent().getId() + "/log/"
+					WEB_BASE_URL + "/trainer/manage/" + lessonHistory.getStudent().getId() + "/log/"
 						+ lessonHistory.getId(),
 					lessonHistory.getStudent().getId(),
 					lessonHistory.getStudent().getName()

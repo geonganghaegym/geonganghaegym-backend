@@ -11,6 +11,7 @@ public class Utils {
 	public static final Integer EMAIL_AUTH_TIMEOUT = 3 * 60 * 1000; // 3분
 	public static final Long FILE_TEMP_UPLOAD_TIMEOUT = 30 * 60 * 1000L; // 30분
 	public static final Integer ONE_DAY = 24 * 60 * 60 * 1000; //1일
+	public static final String WEB_BASE_URL = "https://geonganghaejim.site"; // 알림 클릭·초대 링크가 가리키는 웹 주소
 
 	public static final DateTimeFormatter formatter_hmm = DateTimeFormatter.ofPattern("a h:mm");
 

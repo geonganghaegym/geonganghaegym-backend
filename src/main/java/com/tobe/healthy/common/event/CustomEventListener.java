@@ -1,6 +1,7 @@
 package com.tobe.healthy.common.event;
 
 import static com.tobe.healthy.common.LessonTimeFormatter.*;
+import static com.tobe.healthy.common.Utils.WEB_BASE_URL;
 import static com.tobe.healthy.common.error.ErrorCode.*;
 import static com.tobe.healthy.course.domain.CourseHistoryType.*;
 import static com.tobe.healthy.notification.domain.NotificationCategory.*;
@@ -82,7 +83,7 @@ public class CustomEventListener {
 						WAITING,
 						SCHEDULE,
 						null,
-						"https://main.to-be-healthy.shop/student/schedule?tab=myReservation",
+						WEB_BASE_URL + "/student/schedule?tab=myReservation",
 						schedule.getApplicant().getId(),
 						schedule.getApplicant().getName()
 					);

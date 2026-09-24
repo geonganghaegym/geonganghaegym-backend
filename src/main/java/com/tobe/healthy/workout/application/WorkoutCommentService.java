@@ -1,5 +1,6 @@
 package com.tobe.healthy.workout.application;
 
+import static com.tobe.healthy.common.Utils.WEB_BASE_URL;
 import static com.tobe.healthy.common.error.ErrorCode.*;
 import static com.tobe.healthy.common.event.EventType.*;
 import static com.tobe.healthy.notification.domain.NotificationCategory.*;
@@ -71,7 +72,7 @@ public class WorkoutCommentService {
 				COMMENT,
 				COMMUNITY,
 				history.getWorkoutHistoryId(),
-				String.format("https://main.to-be-healthy.shop/student/community/%d", history.getWorkoutHistoryId()),
+				String.format(WEB_BASE_URL + "/student/community/%d", history.getWorkoutHistoryId()),
 				null,
 				null
 			);
@@ -85,7 +86,7 @@ public class WorkoutCommentService {
 				REPLY,
 				COMMUNITY,
 				history.getWorkoutHistoryId(),
-				String.format("https://main.to-be-healthy.shop/student/community/%d", history.getWorkoutHistoryId()),
+				String.format(WEB_BASE_URL + "/student/community/%d", history.getWorkoutHistoryId()),
 				null,
 				null
 			);
