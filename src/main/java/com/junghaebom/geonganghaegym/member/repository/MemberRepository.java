@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.junghaebom.geonganghaegym.member.domain.Member;
 import com.junghaebom.geonganghaegym.member.domain.MemberType;
+import com.junghaebom.geonganghaegym.member.domain.SocialType;
 
 public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
 	@Query("select m from Member m where m.email = :email and m.delYn = false")
@@ -15,6 +16,9 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
 
 	@Query("select m from Member m where m.userId = :userId and m.delYn = false")
 	Optional<Member> findByUserId(String userId);
+
+	@Query("select m from Member m where m.socialType = :socialType and m.socialId = :socialId and m.delYn = false")
+	Optional<Member> findBySocialTypeAndSocialId(SocialType socialType, String socialId);
 
 	@Query("select m from Member m where m.email = :email and m.name = :name and m.delYn = false")
 	Optional<Member> findByEmailAndName(String email, String name);
