@@ -5,7 +5,7 @@ plugins {
     id 'com.gorylenko.gradle-git-properties' version '2.5.7'
 }
 
-group = 'com.to-be'
+group = 'com.junghaebom'
 version = '0.0.1-SNAPSHOT'
 
 java {
