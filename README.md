@@ -85,7 +85,7 @@ Ingress 경로 규칙은 `/api`, `/swagger-ui`, `/v3/api-docs`, `/files`가 back
 
 ### 패키지: 기능별로 나누고, 그 안을 계층으로 나눈다
 
-`src/main/java/com/tobe/healthy/` 아래에 **기능(feature) 단위 패키지**가 있고, 각 패키지 안은 같은 계층 구조를
+`src/main/java/com/junghaebom/geonganghaegym/` 아래에 **기능(feature) 단위 패키지**가 있고, 각 패키지 안은 같은 계층 구조를
 따릅니다.
 
 | 패키지 | 하는 일 | API base path |
@@ -241,7 +241,7 @@ API 서버 안에서 요청이 흐르는 길과, 서비스 코드 밖에서 동�
 | 매주 월요일 00:00 | 예약불가(`DISABLED`) 슬롯 정리 |
 | 매일 22:00 | 트레이너에게 수업 일지 작성 알림 |
 
-JVM 기본 타임존은 `Asia/Seoul`로 고정돼 있어요(`HealthyApplication`).
+JVM 기본 타임존은 `Asia/Seoul`로 고정돼 있어요(`GeonganghaegymApplication`).
 
 ### 파일 저장
 

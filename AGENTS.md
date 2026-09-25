@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 
 This repository is a Spring Boot 3.5.13 service named `healthy`, built with Gradle (Groovy DSL, `build.gradle`, single
-module) and Java 17. All code is Java: application code lives in `src/main/java/com/tobe/healthy`, tests in
+module) and Java 17. All code is Java: application code lives in `src/main/java/com/junghaebom/geonganghaegym`, tests in
 `src/test/java`. There is no Kotlin source.
 
 Packages are organized by feature (`member`, `gym`, `trainer`, `course`, `schedule`, `lessonhistory`, `diet`,
