@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/to-be-healthy/FrontEnd/assets/102174146/f0629a08-f862-4b67-bf93-d52df57acb79" alt="건강해짐 로고 이미지">
+    <img src="https://github.com/geonganghaegym/geonganghaegym-web/assets/102174146/f0629a08-f862-4b67-bf93-d52df57acb79" alt="건강해짐 로고 이미지">
     <br />
     <h1 align="center">건강해짐 Backend</h1>
     <p align="center">피트니스 센터, 트레이너와 회원을 위한 PT 일정·회원 관리 앱의 API 서버</p>
@@ -15,7 +15,7 @@
 
 ## 건강해짐은 어떤 서비스인가요
 
-![건강해짐 배너 sns](https://github.com/to-be-healthy/FrontEnd/assets/102174146/d1682aea-4a3e-4c3e-84fc-9c55b3626547)
+![건강해짐 배너 sns](https://github.com/geonganghaegym/geonganghaegym-web/assets/102174146/d1682aea-4a3e-4c3e-84fc-9c55b3626547)
 
 헬스장의 PT 트레이너와 회원은 보통 수기 메모나 카카오톡으로 수업 일정을 잡아요. 예약이 대화방에 흩어지고,
 남은 수업 횟수는 트레이너가 따로 세고, 수업 피드백은 말로 하고 끝나죠.
@@ -40,9 +40,9 @@
 <details>
 <summary>기능 소개 이미지</summary>
 
-![PT 스케줄 관리](https://github.com/to-be-healthy/FrontEnd/assets/102174146/96784978-d903-47bf-832d-8433da311ae8)
+![PT 스케줄 관리](https://github.com/geonganghaegym/geonganghaegym-web/assets/102174146/96784978-d903-47bf-832d-8433da311ae8)
 
-![체계적인 회원 관리](https://github.com/to-be-healthy/FrontEnd/assets/102174146/05e70f40-4c75-4349-bfaa-fedc69cbc923)
+![체계적인 회원 관리](https://github.com/geonganghaegym/geonganghaegym-web/assets/102174146/05e70f40-4c75-4349-bfaa-fedc69cbc923)
 
 </details>
 
@@ -320,8 +320,8 @@ non-root 사용자 `appuser`(uid 1001)로 실행해요. 이미지 빌드는 테�
 Java 17과 Docker가 필요해요.
 
 ```bash
-git clone https://github.com/to-be-healthy/backend.git
-cd backend
+git clone https://github.com/geonganghaegym/geonganghaegym-backend.git
+cd geonganghaegym-backend
 
 # 1. MySQL 8.0 · Redis 7 기동
 #    MYSQL_ROOT_PASSWORD, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD를 셸 또는 .env에 설정
