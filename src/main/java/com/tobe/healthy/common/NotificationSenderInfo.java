@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 public class NotificationSenderInfo {
 
+	public static final String DEFAULT_PROFILE_URL = "https://geonganghaegym.junghaebom.com/images/default-profile.png";
+
 	private NotificationSenderInfo() {
 	}
 
@@ -23,7 +25,7 @@ public class NotificationSenderInfo {
 	public static class SenderInfo {
 
 		@Builder.Default
-		private String profileUrl = "https://cdn.to-be-healthy.shop/origin/profile/default.png";
+		private String profileUrl = DEFAULT_PROFILE_URL;
 
 		@Builder.Default
 		private NotificationSenderType senderType = NotificationSenderType.SYSTEM;

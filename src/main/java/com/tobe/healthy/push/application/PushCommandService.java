@@ -16,6 +16,7 @@ import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushFcmOptions;
 import com.google.firebase.messaging.WebpushNotification;
+import com.tobe.healthy.common.NotificationSenderInfo;
 import com.tobe.healthy.common.error.CustomException;
 import com.tobe.healthy.common.error.ErrorCode;
 import com.tobe.healthy.member.domain.Member;
@@ -116,7 +117,7 @@ public class PushCommandService {
 				Notification.builder()
 					.setTitle(title)
 					.setBody(message)
-					.setImage("https://cdn.to-be-healthy.shop/origin/profile/default.png?w=96&h=96")
+					.setImage(NotificationSenderInfo.DEFAULT_PROFILE_URL)
 					.build()
 			)
 			.setAndroidConfig(
