@@ -25,7 +25,8 @@ spec:
       containers:
         - name: backend
           image: ghcr.io/geonganghaegym/geonganghaegym-backend:placeholder
-          imagePullPolicy: IfNotPresent
+          # 같은 태그로 다시 빌드(gh run rerun)해도 노드 캐시 이미지를 쓰지 않도록 매번 받는다.
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http
