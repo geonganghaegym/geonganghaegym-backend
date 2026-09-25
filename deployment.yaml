@@ -84,6 +84,10 @@ spec:
             - name: apple-key
               mountPath: /etc/apple
               readOnly: true
+            # Firebase Admin SDK 서비스 계정 키(FCM 푸시 발송). FIREBASE_ADMIN_SDK_FILE이 이 경로를 가리켜야 한다.
+            - name: firebase-key
+              mountPath: /etc/firebase
+              readOnly: true
       volumes:
         - name: files
           persistentVolumeClaim:
@@ -92,4 +96,9 @@ spec:
         - name: apple-key
           secret:
             secretName: backend-apple-key
+            optional: true
+        # 시크릿이 없어도 파드는 기동되고 푸시 발송만 건너뛰도록 optional 처리한다(FirebaseConfig가 경고 후 스킵).
+        - name: firebase-key
+          secret:
+            secretName: backend-firebase-key
             optional: true
