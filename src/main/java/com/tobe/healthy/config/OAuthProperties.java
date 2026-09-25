@@ -1,5 +1,7 @@
 package com.tobe.healthy.config;
 
+import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,16 @@ import lombok.ToString;
 @Data
 @ToString
 public class OAuthProperties {
+
+	/**
+	 * 같은 프론트엔드 배포가 서비스되는 origin 목록. 프론트엔드 entity/auth/consts.ts 와 맞춘다.
+	 */
+	private static final List<String> ALLOWED_REDIRECT_ORIGINS = List.of(
+		"https://geonganghaejim.site",
+		"https://health.junghaebom.com",
+		"https://geonganghaegym.junghaebom.com"
+	);
+
 	private OAuthServiceProperties kakao;
 	private OAuthServiceProperties naver;
 	private OAuthServiceProperties google;
@@ -44,5 +56,15 @@ public class OAuthProperties {
 		public String getAdminKey() {
 			return adminKey;
 		}
+	}
+
+	/**
+	 * 클라이언트가 보낸 redirect URL이 허용 origin + callbackPath 와 정확히 일치할 때만 쓰고,
+	 * 아니면(비어 있거나 다른 호스트·경로) 설정값으로 폴백한다. 임의 URL 주입을 막는다.
+	 */
+	public static String resolveRedirectUri(String requested, String callbackPath, String fallback) {
+		boolean allowed = requested != null && ALLOWED_REDIRECT_ORIGINS.stream()
+			.anyMatch(origin -> requested.equals(origin + callbackPath));
+		return allowed ? requested : fallback;
 	}
 }

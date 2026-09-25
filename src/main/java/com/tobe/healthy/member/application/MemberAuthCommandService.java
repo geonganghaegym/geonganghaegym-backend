@@ -287,7 +287,9 @@ public class MemberAuthCommandService {
 	}
 
 	public Tokens getKakaoAccessToken(CommandSocialLogin request) {
-		KakaoUserInfo response = getKakaoOAuthAccessToken(request.code(), request.redirectUrl());
+		String redirectUri = OAuthProperties.resolveRedirectUri(request.redirectUrl(), "/kakao/callback",
+			oAuthProperties.getKakao().getRedirectUri());
+		KakaoUserInfo response = getKakaoOAuthAccessToken(request.code(), redirectUri);
 		String email = getKakaoEmail(response);
 
 		if (isEmpty(email)) {
@@ -317,7 +319,9 @@ public class MemberAuthCommandService {
 
 	@Transactional
 	public Tokens getGoogleOAuth(CommandSocialLogin request) {
-		OAuthInfo googleToken = getGoogleAccessToken(request.code(), request.redirectUrl());
+		String redirectUri = OAuthProperties.resolveRedirectUri(request.redirectUrl(), "/google/callback",
+			oAuthProperties.getGoogle().getRedirectUri());
+		OAuthInfo googleToken = getGoogleAccessToken(request.code(), redirectUri);
 		GoogleUserInfo userInfo = getGoogleUserInfo(googleToken.accessToken());
 
 		if (isEmpty(userInfo.email())) {
@@ -361,7 +365,7 @@ public class MemberAuthCommandService {
 		}
 
 		String name = extractAppleName(request.user(), userInfo.email());
-		AppleToken token = requestAppleToken(request.code());
+		AppleToken token = requestAppleToken(request.code(), request.redirectUrl());
 
 		Member member = Member.join(userInfo.sub(), userInfo.email(), name, request.memberType(), APPLE,
 			userInfo.sub(), token.refresh_token());
@@ -432,16 +436,19 @@ public class MemberAuthCommandService {
 		return defaultNameFrom(null, email);
 	}
 
-	private AppleToken requestAppleToken(String code) {
+	private AppleToken requestAppleToken(String code, String requestedRedirectUri) {
 		if (isEmpty(code)) {
 			throw new CustomException(ACCESS_TOKEN_NOT_FOUND);
 		}
 
 		AppleProperties apple = oAuthProperties.getApple();
+		// authorize 요청의 redirect_uri 와 같아야 하므로 로그인을 시작한 호스트의 콜백을 쓴다.
+		String redirectUri = OAuthProperties.resolveRedirectUri(requestedRedirectUri, "/api/callback/apple",
+			apple.getRedirectUri());
 
-		if (isEmpty(apple.getRedirectUri()) || isEmpty(apple.getClientId())) {
+		if (isEmpty(redirectUri) || isEmpty(apple.getClientId())) {
 			log.error("애플 로그인 설정이 비어 있습니다. clientId: {}, redirectUri: {}",
-				apple.getClientId(), apple.getRedirectUri());
+				apple.getClientId(), redirectUri);
 			throw new CustomException(APPLE_CONNECTION_ERROR);
 		}
 
@@ -450,7 +457,7 @@ public class MemberAuthCommandService {
 		form.add("client_secret", createClientSecret());
 		form.add("code", code.split("&")[0]);
 		form.add("grant_type", "authorization_code");
-		form.add("redirect_uri", apple.getRedirectUri());
+		form.add("redirect_uri", redirectUri);
 
 		AppleToken token = webClient.post()
 			.uri(APPLE_TOKEN_URI)
