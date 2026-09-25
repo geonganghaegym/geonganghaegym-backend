@@ -256,15 +256,14 @@ public class MemberAuthCommandService {
 	public Tokens getNaverAccessToken(CommandSocialLogin request) {
 		OAuthInfo response = getNaverOAuthAccessToken(request.code(), request.state());
 		NaverUserInfo authorization = getNaverUserInfo(response);
-		Optional<Member> findMember = memberRepository.findByEmail(authorization.response().email());
+		Optional<Member> findMember = findSocialMember(NAVER, authorization.response().id(), request.memberType());
 
 		if (findMember.isPresent()) {
-			if (isJoinMember(findMember.get(), NAVER, request.memberType())) {
-				findMember.get().updateSocialRefreshToken(response.refreshToken());
-				return tokenGenerator.create(findMember.get());
-			}
+			findMember.get().updateSocialRefreshToken(response.refreshToken());
+			return tokenGenerator.create(findMember.get());
 		}
 
+		validateSocialJoinEmail(authorization.response().email());
 		Member member = Member.join(
 			authorization.response().email(),
 			authorization.response().name(),
@@ -290,20 +289,14 @@ public class MemberAuthCommandService {
 		String redirectUri = OAuthProperties.resolveRedirectUri(request.redirectUrl(), "/kakao/callback",
 			oAuthProperties.getKakao().getRedirectUri());
 		KakaoUserInfo response = getKakaoOAuthAccessToken(request.code(), redirectUri);
-		String email = getKakaoEmail(response);
-
-		if (isEmpty(email)) {
-			throw new CustomException(SOCIAL_EMAIL_NOT_PROVIDED);
-		}
-
-		Optional<Member> findMember = memberRepository.findByEmail(email);
+		Optional<Member> findMember = findSocialMember(KAKAO, String.valueOf(response.id()), request.memberType());
 
 		if (findMember.isPresent()) {
-			if (isJoinMember(findMember.get(), KAKAO, request.memberType())) {
-				return tokenGenerator.create(findMember.get());
-			}
+			return tokenGenerator.create(findMember.get());
 		}
 
+		String email = getKakaoEmail(response);
+		validateSocialJoinEmail(email);
 		String name = defaultNameFrom(getKakaoNickname(response), email);
 		Member member = Member.join(email, name, request.memberType(), KAKAO, String.valueOf(response.id()));
 		MemberProfile profile = getProfile(getKakaoProfileImage(response), member);
@@ -324,18 +317,13 @@ public class MemberAuthCommandService {
 		OAuthInfo googleToken = getGoogleAccessToken(request.code(), redirectUri);
 		GoogleUserInfo userInfo = getGoogleUserInfo(googleToken.accessToken());
 
-		if (isEmpty(userInfo.email())) {
-			throw new CustomException(SOCIAL_EMAIL_NOT_PROVIDED);
-		}
-
-		Optional<Member> findMember = memberRepository.findByEmail(userInfo.email());
+		Optional<Member> findMember = findSocialMember(GOOGLE, userInfo.id(), request.memberType());
 
 		if (findMember.isPresent()) {
-			if (isJoinMember(findMember.get(), GOOGLE, request.memberType())) {
-				return tokenGenerator.create(findMember.get());
-			}
+			return tokenGenerator.create(findMember.get());
 		}
 
+		validateSocialJoinEmail(userInfo.email());
 		String name = defaultNameFrom(userInfo.name(), userInfo.email());
 		Member member = Member.join(userInfo.email(), name, request.memberType(), GOOGLE, userInfo.id());
 		MemberProfile profile = getProfile(userInfo.picture(), member);
@@ -352,18 +340,12 @@ public class MemberAuthCommandService {
 	public Tokens getAppleOAuth(CommandSocialLogin request) {
 		IdToken userInfo = parseAppleIdToken(request.id_token());
 
-		Optional<Member> findMember = memberRepository.findByUserId(userInfo.sub());
+		Optional<Member> findMember = findSocialMember(APPLE, userInfo.sub(), request.memberType());
 		if (findMember.isPresent()) {
-			if (isJoinMember(findMember.get(), APPLE, request.memberType())) {
-				return tokenGenerator.create(findMember.get());
-			}
+			return tokenGenerator.create(findMember.get());
 		}
 
-		// 이메일은 unique 제약이 있어 비어 있으면 두 번째 회원부터 제약 위반으로 터진다.
-		if (isEmpty(userInfo.email())) {
-			throw new CustomException(SOCIAL_EMAIL_NOT_PROVIDED);
-		}
-
+		validateSocialJoinEmail(userInfo.email());
 		String name = extractAppleName(request.user(), userInfo.email());
 		AppleToken token = requestAppleToken(request.code(), request.redirectUrl());
 
@@ -521,17 +503,35 @@ public class MemberAuthCommandService {
 		}
 	}
 
-	private boolean isJoinMember(Member member, SocialType socialType, MemberType memberType) {
-		if (member.getSocialType().equals(NONE)) {
-			throw new IllegalArgumentException("이미 같은 이메일로 가입된 계정이 있습니다. 기존 방식으로 로그인해 주세요.");
-		}
-		if (member.getSocialType().equals(socialType)) {
-			if (!member.getMemberType().equals(memberType)) {
-				throw new IllegalArgumentException(String.format("%s로 가입한 사용자입니다.", member.getTransformedMemberType()));
+	/**
+	 * 소셜 회원은 제공자가 주는 사용자 id로 식별한다.
+	 * 이메일은 사용자가 제공자 쪽에서 바꿀 수 있어(네이버 연락처 이메일 등) 식별에 쓰면 같은 계정이 새 회원으로 갈라진다.
+	 */
+	private Optional<Member> findSocialMember(SocialType socialType, String socialId, MemberType memberType) {
+		Optional<Member> member = memberRepository.findBySocialTypeAndSocialId(socialType, socialId);
+		member.ifPresent(m -> {
+			if (!m.getMemberType().equals(memberType)) {
+				throw new IllegalArgumentException(String.format("%s로 가입한 사용자입니다.", m.getTransformedMemberType()));
 			}
-			return true;
+		});
+		return member;
+	}
+
+	/**
+	 * 신규 소셜 가입 시에만 이메일을 본다. 같은 이메일의 회원이 있으면 계정을 연동하지 않고 가입 경로를 안내한다.
+	 */
+	private void validateSocialJoinEmail(String email) {
+		if (isEmpty(email)) {
+			throw new CustomException(SOCIAL_EMAIL_NOT_PROVIDED);
 		}
-		throw new CustomException(MEMBER_NOT_FOUND);
+		memberRepository.findByEmail(email).ifPresent(m -> {
+			if (m.getSocialType().equals(NONE)) {
+				throw new IllegalArgumentException("이미 같은 이메일로 가입된 계정이 있습니다. 기존 방식으로 로그인해 주세요.");
+			}
+			throw new IllegalArgumentException(
+				String.format("이미 %s로 가입된 이메일입니다. %s 로그인을 이용해 주세요.", m.getSocialType().getDescription(),
+					m.getSocialType().getDescription()));
+		});
 	}
 
 	/**
@@ -799,7 +799,7 @@ public class MemberAuthCommandService {
 		request.add("client_secret", oAuthProperties.getNaver().getClientSecret());
 		request.add("code", code);
 		request.add("state", state);
-		return webClient.post()
+		OAuthInfo tokenInfo = webClient.post()
 			.uri(oAuthProperties.getNaver().getTokenUri())
 			.bodyValue(request)
 			.headers(header -> header.setContentType(APPLICATION_FORM_URLENCODED))
@@ -807,6 +807,13 @@ public class MemberAuthCommandService {
 			.bodyToMono(OAuthInfo.class)
 			.share()
 			.block();
+
+		// 네이버는 인가 코드가 잘못돼도 200으로 error 본문을 내려준다.
+		if (tokenInfo == null || isEmpty(tokenInfo.accessToken())) {
+			log.error("네이버 토큰 발급에 실패했습니다. response: {}", tokenInfo);
+			throw new CustomException(NAVER_CONNECTION_ERROR);
+		}
+		return tokenInfo;
 	}
 
 	private void validateDuplicationUserId(String userId) {

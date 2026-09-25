@@ -59,6 +59,19 @@ class SocialLoginTest {
 	private static final String GOOGLE_USER_INFO_URI = "https://www.googleapis.com/oauth2/v2/userinfo";
 	private static final String KAKAO_TOKEN_URI = "https://kauth.kakao.com/oauth/token";
 	private static final String KAKAO_USER_INFO_URI = "https://kapi.kakao.com/v2/user/me";
+	private static final String NAVER_TOKEN_URI = "https://nid.naver.com/oauth2.0/token";
+	private static final String NAVER_USER_INFO_URI = "https://openapi.naver.com/v1/nid/me";
+
+	private static final String NAVER_TOKEN_RESPONSE = """
+		{"access_token":"naver-access-token","refresh_token":"naver-refresh-token","token_type":"bearer",
+		"expires_in":"3600"}
+		""";
+
+	// 네이버 email 은 연락처 이메일이라 사용자가 바꿀 수 있다. id 는 앱 기준으로 고정이다.
+	private static final String NAVER_USER_INFO_RESPONSE = """
+		{"resultcode":"00","message":"success","response":{"id":"PodlbE18qpksAgHRiYQZVLPjMw2KOy7AS3fNJUUkQVk",
+		"email":"changed@gmail.com","name":"홍길동"}}
+		""";
 
 	/**
 	 * 실제 소셜 응답에는 우리가 선언하지 않은 필드가 함께 온다.
@@ -128,8 +141,10 @@ class SocialLoginTest {
 		oAuthProperties = new OAuthProperties();
 		oAuthProperties.setGoogle(serviceProperties(GOOGLE_TOKEN_URI, GOOGLE_USER_INFO_URI));
 		oAuthProperties.setKakao(serviceProperties(KAKAO_TOKEN_URI, KAKAO_USER_INFO_URI));
+		oAuthProperties.setNaver(serviceProperties(NAVER_TOKEN_URI, NAVER_USER_INFO_URI));
 
 		when(memberRepository.findByEmail(any())).thenReturn(Optional.empty());
+		when(memberRepository.findBySocialTypeAndSocialId(any(), any())).thenReturn(Optional.empty());
 		when(memberRepository.save(any(Member.class))).thenAnswer(it -> it.getArgument(0));
 		when(tokenGenerator.create(any(Member.class))).thenAnswer(it -> {
 			Member member = it.getArgument(0);
@@ -242,7 +257,7 @@ class SocialLoginTest {
 
 		assertEquals("애플 로그인 정보가 유효하지 않습니다. 다시 시도해 주세요.", exception.getMessage());
 		verify(memberRepository, never()).save(any(Member.class));
-		verify(memberRepository, never()).findByUserId(any());
+		verify(memberRepository, never()).findBySocialTypeAndSocialId(any(), any());
 	}
 
 	@Test
@@ -253,12 +268,81 @@ class SocialLoginTest {
 
 		Member existing = Member.join("000298.abc.1747", "tester@privaterelay.appleid.com", "정선우",
 			MemberType.STUDENT, SocialType.APPLE, "000298.abc.1747", "refresh");
-		when(memberRepository.findByUserId("000298.abc.1747")).thenReturn(Optional.of(existing));
+		when(memberRepository.findBySocialTypeAndSocialId(SocialType.APPLE, "000298.abc.1747"))
+			.thenReturn(Optional.of(existing));
 
 		Tokens tokens = service.getAppleOAuth(appleLogin("valid.id.token"));
 
 		assertEquals("정선우", tokens.getName());
 		// 기존 회원이므로 애플 토큰 엔드포인트를 호출하지 않는다(스텁이 비어 있어도 통과).
+		verify(memberRepository, never()).save(any(Member.class));
+	}
+
+	@Test
+	@DisplayName("네이버 이메일이 바뀌어도 소셜 id로 기존 회원을 찾아 로그인하고 새 회원을 만들지 않는다")
+	void naverLoginFindsMemberBySocialIdEvenIfEmailChanged() {
+		MemberAuthCommandService service = service(Map.of(
+			"nid.naver.com", NAVER_TOKEN_RESPONSE,
+			"openapi.naver.com", NAVER_USER_INFO_RESPONSE
+		));
+		Member existing = Member.join("old@naver.com", "홍길동", MemberType.STUDENT, SocialType.NAVER,
+			"PodlbE18qpksAgHRiYQZVLPjMw2KOy7AS3fNJUUkQVk", "old-refresh");
+		when(memberRepository.findBySocialTypeAndSocialId(SocialType.NAVER,
+			"PodlbE18qpksAgHRiYQZVLPjMw2KOy7AS3fNJUUkQVk")).thenReturn(Optional.of(existing));
+
+		Tokens tokens = service.getNaverAccessToken(socialLogin());
+
+		assertEquals("홍길동", tokens.getName());
+		assertEquals("naver-refresh-token", existing.getSocialRefreshToken());
+		verify(memberRepository, never()).save(any(Member.class));
+		verify(memberRepository, never()).findByEmail(any());
+	}
+
+	@Test
+	@DisplayName("다른 소셜로 가입된 이메일로 애플 신규 가입을 하면 가입 경로를 안내하고 회원을 만들지 않는다")
+	void rejectsAppleJoinWhenEmailUsedByAnotherProvider() {
+		MemberAuthCommandService service = service(Map.of());
+		when(appleJwtDecoder.decode(any())).thenReturn(appleJwt("000298.abc.1747", "tester@gmail.com"));
+		Member naverMember = Member.join("tester@gmail.com", "홍길동", MemberType.STUDENT, SocialType.NAVER,
+			"naver-id", "refresh");
+		when(memberRepository.findByEmail("tester@gmail.com")).thenReturn(Optional.of(naverMember));
+
+		CommandSocialLogin request = appleLogin("valid.id.token");
+		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+			() -> service.getAppleOAuth(request));
+
+		assertEquals("이미 네이버로 가입된 이메일입니다. 네이버 로그인을 이용해 주세요.", exception.getMessage());
+		verify(memberRepository, never()).save(any(Member.class));
+	}
+
+	@Test
+	@DisplayName("소셜 id로 찾은 회원의 회원 타입이 요청과 다르면 로그인시키지 않는다")
+	void rejectsWhenMemberTypeDiffers() {
+		MemberAuthCommandService service = service(Map.of(
+			"kauth.kakao.com", KAKAO_TOKEN_RESPONSE,
+			"kapi.kakao.com", KAKAO_USER_INFO_RESPONSE
+		));
+		Member trainer = Member.join("tester@kakao.com", "길동이", MemberType.TRAINER, SocialType.KAKAO, "123456789");
+		when(memberRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, "123456789"))
+			.thenReturn(Optional.of(trainer));
+
+		CommandSocialLogin request = socialLogin();
+		assertThrows(IllegalArgumentException.class, () -> service.getKakaoAccessToken(request));
+		verify(tokenGenerator, never()).create(any(Member.class));
+	}
+
+	@Test
+	@DisplayName("네이버에서 이메일을 받지 못하면 신규 가입을 막는다")
+	void rejectsNaverJoinWithoutEmail() {
+		MemberAuthCommandService service = service(Map.of(
+			"nid.naver.com", NAVER_TOKEN_RESPONSE,
+			"openapi.naver.com", "{\"resultcode\":\"00\",\"response\":{\"id\":\"naver-id\",\"name\":\"홍길동\"}}"
+		));
+
+		CommandSocialLogin request = socialLogin();
+		CustomException exception = assertThrows(CustomException.class, () -> service.getNaverAccessToken(request));
+
+		assertEquals("이메일 제공에 동의해야 소셜 로그인을 완료할 수 있어요.", exception.getMessage());
 		verify(memberRepository, never()).save(any(Member.class));
 	}
 
