@@ -145,7 +145,7 @@ public class PushCommandService {
 					)
 					.putHeader("apns-push-type", "alert")
 					.putHeader("apns-priority", "10")
-					.putHeader("apns-topic", "site.tobehealthy.webview")
+					.putHeader("apns-topic", "com.geonganghaejim.app")
 					.build()
 			)
 			.setWebpushConfig(
