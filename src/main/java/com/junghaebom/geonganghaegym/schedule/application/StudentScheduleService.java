@@ -1,7 +1,6 @@
 package com.junghaebom.geonganghaegym.schedule.application;
 
 import static com.junghaebom.geonganghaegym.common.error.ErrorCode.*;
-import static com.junghaebom.geonganghaegym.schedule.domain.ReservationStatus.*;
 import static java.time.LocalTime.*;
 
 import java.time.LocalDate;
@@ -21,6 +20,7 @@ import com.junghaebom.geonganghaegym.schedule.presentation.dto.out.MyReservation
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.out.ReservationDaysResult;
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.out.ScheduleCommandResponse;
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.out.ScheduleCommandResult;
+import com.junghaebom.geonganghaegym.schedule.presentation.dto.out.ScheduleCommandResult.SoldOutReason;
 import com.junghaebom.geonganghaegym.schedule.repository.student.StudentScheduleRepository;
 import com.junghaebom.geonganghaegym.trainer.domain.TrainerMemberMapping;
 import com.junghaebom.geonganghaegym.trainer.respository.TrainerMemberMappingRepository;
@@ -50,20 +50,40 @@ public class StudentScheduleService {
 	private ScheduleCommandResponse settingMorningAndAfternoon(List<ScheduleCommandResult> schedule, Member member) {
 		List<ScheduleCommandResult> morning = schedule.stream()
 			.filter(s -> NOON.isAfter(s.lessonStartTime()))
-			.map(s -> isSoldOut(s) ? s.withReservationStatus(SOLD_OUT) : s)
+			.map(this::markSoldOut)
 			.collect(Collectors.toList());
 
 		List<ScheduleCommandResult> afternoon = schedule.stream()
 			.filter(s -> !s.lessonStartTime().isBefore(NOON))
-			.map(s -> isSoldOut(s) ? s.withReservationStatus(SOLD_OUT) : s)
+			.map(this::markSoldOut)
 			.collect(Collectors.toList());
 
 		return ScheduleCommandResponse.create(member.getScheduleNoticeStatus(), morning, afternoon);
 	}
 
-	private boolean isSoldOut(ScheduleCommandResult s) {
-		return validateWaitingToday(s) || existsWaiting(s) || beforeLessonDateTimeThenNow(s)
-			|| validateWaitingBefore24Hour(s) || validateReservationBefore30Minutes(s);
+	private ScheduleCommandResult markSoldOut(ScheduleCommandResult s) {
+		SoldOutReason reason = soldOutReason(s);
+		return reason == null ? s : s.soldOut(reason);
+	}
+
+	// 여러 사유에 걸리면 회원에게 가장 결정적인 것 하나를 고른다: 지난 수업 > 내 예약 > 예약 마감 > 대기 마감 > 대기 불가
+	private SoldOutReason soldOutReason(ScheduleCommandResult s) {
+		if (beforeLessonDateTimeThenNow(s)) {
+			return SoldOutReason.PAST;
+		}
+		if (s.soldOutReason() != null) {
+			return s.soldOutReason();
+		}
+		if (validateReservationBefore30Minutes(s)) {
+			return SoldOutReason.RESERVATION_CLOSED;
+		}
+		if (existsWaiting(s)) {
+			return SoldOutReason.WAITING_FULL;
+		}
+		if (validateWaitingToday(s) || validateWaitingBefore24Hour(s)) {
+			return SoldOutReason.WAITING_CLOSED;
+		}
+		return null;
 	}
 
 	//수업시간 24시간 전부터는 대기 불가

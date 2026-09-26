@@ -36,6 +36,6 @@ class StudentScheduleServiceTest {
 
 	private ScheduleCommandResult schedule(Long id, LocalTime time) {
 		return new ScheduleCommandResult(id, LocalDate.now().plusDays(7), time, time.plusMinutes(30),
-			null, "trainer", null, null);
+			null, "trainer", null, null, null);
 	}
 }
