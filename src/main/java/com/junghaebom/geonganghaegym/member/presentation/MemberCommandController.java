@@ -22,6 +22,7 @@ import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandAssignNic
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeEmail;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeMemberPassword;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeName;
+import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandLogout;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandUpdateMemo;
 import com.junghaebom.geonganghaegym.member.presentation.dto.out.CommandAssignNicknameResult;
 import com.junghaebom.geonganghaegym.member.presentation.dto.out.CommandChangeNameResult;
@@ -47,10 +48,15 @@ public class MemberCommandController {
 
 	private final MemberCommandService memberCommandService;
 
-	@Operation(summary = "로그아웃", description = "로그아웃시 refreshToken, fcmToken을 삭제한다.")
+	@Operation(summary = "로그아웃", description = """
+		로그아웃시 refreshToken, fcmToken을 삭제한다.
+		fcmToken을 보내면 그 기기의 토큰만 삭제하고, 보내지 않으면 회원의 모든 기기 토큰을 삭제한다.
+		""")
 	@PostMapping("/logout")
-	public void logout(@AuthenticationPrincipal CustomMemberDetails member) {
-		memberCommandService.logout(member.getMemberId());
+	public void logout(
+		@AuthenticationPrincipal CustomMemberDetails member,
+		@RequestBody(required = false) CommandLogout request) {
+		memberCommandService.logout(member.getMemberId(), request);
 	}
 
 	@Operation(summary = "회원 탈퇴한다.", description = "로그인한 계정의 현재 비밀번호와 일치하다면 회원탈퇴를 시킨다.")

@@ -1,6 +1,6 @@
 package com.junghaebom.geonganghaegym.push.application;
 
-import java.util.concurrent.ExecutionException;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +11,9 @@ import com.google.firebase.messaging.ApnsConfig;
 import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.ApsAlert;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushFcmOptions;
@@ -47,12 +49,7 @@ public class PushCommandService {
 		Member findMember = memberRepository.findById(memberId)
 			.orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-		MemberToken findMemberToken = memberTokenRepository.findByMemberId(findMember.getId())
-			.orElseGet(() -> memberTokenRepository.save(
-				MemberToken.register(findMember, request.token(), DeviceType.WEB)
-			));
-
-		findMemberToken.changeToken(request.token(), DeviceType.WEB);
+		registerToken(findMember, request.token(), DeviceType.WEB);
 
 		return new CommandRegisterTokenResult(findMember.getName(), request.token());
 	}
@@ -61,27 +58,22 @@ public class PushCommandService {
 		Member findMember = memberRepository.findById(request.memberId())
 			.orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-		MemberToken findMemberToken = memberTokenRepository.findByMemberId(findMember.getId())
-			.orElseGet(() -> memberTokenRepository.save(
-				MemberToken.register(findMember, request.token(), request.deviceType())
-			));
+		registerToken(findMember, request.token(), request.deviceType());
+	}
 
-		findMemberToken.changeToken(request.token(), request.deviceType());
+	// 토큰은 기기 단위라 토큰 기준으로 저장한다. 같은 기기에서 다른 계정으로 로그인하면 소유자만 옮긴다.
+	private void registerToken(Member member, String token, DeviceType deviceType) {
+		memberTokenRepository.findFirstByToken(token)
+			.ifPresentOrElse(
+				found -> found.changeOwner(member, deviceType),
+				() -> memberTokenRepository.save(MemberToken.register(member, token, deviceType))
+			);
 	}
 
 	public CommandSendPushAlarmResult sendPushAlarm(CommandSendPushAlarm request) {
-		Message message = createMessage(request.token(), request.title(), request.message(),
-			request.clickUrl());
-
 		try {
-			String response = FirebaseMessaging
-				.getInstance()
-				.sendAsync(message)
-				.get();
-
-			log.info("Sent message: {}", response);
-		} catch (ExecutionException | InterruptedException e) {
-			Thread.currentThread().interrupt();
+			send(createMessage(request.token(), request.title(), request.message(), request.clickUrl()));
+		} catch (FirebaseMessagingException e) {
 			throw new RuntimeException("Failed to send push alarm", e);
 		}
 
@@ -89,24 +81,40 @@ public class PushCommandService {
 	}
 
 	public CommandSendPushAlarmResult sendPushAlarm(Long memberId, CommandSendPushAlarmToMember request) {
-		MemberToken findMemberToken = memberTokenRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-		Message message = createMessage(findMemberToken.getToken(), request.title(), request.message(), null);
-
-		try {
-			String response = FirebaseMessaging
-				.getInstance()
-				.sendAsync(message)
-				.get();
-
-			log.info("Sent message: {}", response);
-		} catch (ExecutionException | InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new RuntimeException("Failed to send push alarm", e);
+		List<MemberToken> memberTokens = memberTokenRepository.findAllByMemberId(memberId);
+		if (memberTokens.isEmpty()) {
+			throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
 		}
 
+		sendToAll(memberTokens, request.title(), request.message(), null);
+
 		return CommandSendPushAlarmResult.from(request.title(), request.message());
+	}
+
+	public void sendToAll(List<MemberToken> memberTokens, String title, String message, String clickUrl) {
+		for (MemberToken memberToken : memberTokens) {
+			try {
+				send(createMessage(memberToken.getToken(), title, message, clickUrl));
+			} catch (FirebaseMessagingException e) {
+				if (!isStaleToken(e)) {
+					throw new RuntimeException("Failed to send push alarm", e);
+				}
+				log.info("다시 쓸 수 없는 FCM 토큰을 삭제한다. memberTokenId={}, code={}",
+					memberToken.getId(), e.getMessagingErrorCode());
+				memberTokenRepository.delete(memberToken);
+			}
+		}
+	}
+
+	// 앱 삭제·토큰 만료(UNREGISTERED), 다른 Firebase 프로젝트에서 발급된 토큰(SENDER_ID_MISMATCH)
+	private boolean isStaleToken(FirebaseMessagingException exception) {
+		MessagingErrorCode code = exception.getMessagingErrorCode();
+		return code == MessagingErrorCode.UNREGISTERED || code == MessagingErrorCode.SENDER_ID_MISMATCH;
+	}
+
+	private void send(Message message) throws FirebaseMessagingException {
+		String response = FirebaseMessaging.getInstance().send(message);
+		log.info("Sent message: {}", response);
 	}
 
 	private Message createMessage(String token, String title, String message, String clickUrl) {

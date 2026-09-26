@@ -25,7 +25,6 @@ import com.junghaebom.geonganghaegym.notification.domain.NotificationCategory;
 import com.junghaebom.geonganghaegym.notification.domain.NotificationType;
 import com.junghaebom.geonganghaegym.notification.repository.NotificationRepository;
 import com.junghaebom.geonganghaegym.push.application.PushCommandService;
-import com.junghaebom.geonganghaegym.push.presentation.dto.in.CommandSendPushAlarm;
 import com.junghaebom.geonganghaegym.push.domain.MemberToken;
 import com.junghaebom.geonganghaegym.schedule.repository.TrainerScheduleRepository;
 
@@ -62,16 +61,7 @@ public class NotificationService {
 
 			List<MemberToken> memberTokens = receiver.getMemberToken();
 			if (memberTokens != null && !memberTokens.isEmpty()) {
-				MemberToken memberToken = memberTokens.get(0);
-				pushCommandService.sendPushAlarm(
-					new CommandSendPushAlarm(
-						request.title(),
-						request.content(),
-						memberToken.getToken(),
-						request.clickUrl(),
-						memberToken.getDeviceType()
-					)
-				);
+				pushCommandService.sendToAll(memberTokens, request.title(), request.content(), request.clickUrl());
 
 				Notification notification = Notification.create(
 					request.title(),

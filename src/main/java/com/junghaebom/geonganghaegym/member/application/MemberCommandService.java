@@ -29,6 +29,7 @@ import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandAssignNic
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeEmail;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeMemberPassword;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeName;
+import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandLogout;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandUpdateMemo;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.OAuthInfo;
 import com.junghaebom.geonganghaegym.member.presentation.dto.out.CommandAssignNicknameResult;
@@ -41,6 +42,7 @@ import com.junghaebom.geonganghaegym.member.domain.AlarmType;
 import com.junghaebom.geonganghaegym.member.domain.Member;
 import com.junghaebom.geonganghaegym.member.repository.MemberRepository;
 import com.junghaebom.geonganghaegym.point.repository.PointRepository;
+import com.junghaebom.geonganghaegym.push.domain.MemberToken;
 import com.junghaebom.geonganghaegym.push.repository.MemberTokenRepository;
 import com.junghaebom.geonganghaegym.trainer.application.TrainerService;
 import com.junghaebom.geonganghaegym.trainer.domain.TrainerMemberMapping;
@@ -66,11 +68,21 @@ public class MemberCommandService {
 	private final WebClient webClient;
 	private final OAuthProperties oAuthProperties;
 
-	public void logout(Long memberId) {
+	public void logout(Long memberId, CommandLogout request) {
 		memberRepository.findById(memberId).ifPresent(m -> {
 			redisService.deleteValues(m.getUserId());
-			memberTokenRepository.deleteAll(m.getMemberToken());
+			memberTokenRepository.deleteAll(logoutTargetTokens(m, request));
 		});
+	}
+
+	// 토큰을 모르는 클라이언트(앱 웹뷰·구버전)는 기존처럼 회원의 모든 기기 토큰을 지운다
+	private List<MemberToken> logoutTargetTokens(Member member, CommandLogout request) {
+		if (request == null || request.fcmToken() == null || request.fcmToken().isBlank()) {
+			return member.getMemberToken();
+		}
+		return member.getMemberToken().stream()
+			.filter(memberToken -> memberToken.getToken().equals(request.fcmToken()))
+			.toList();
 	}
 
 	public String deleteMember(Member loginMember) {
