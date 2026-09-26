@@ -50,7 +50,7 @@ class MemberLogoutTest {
 	@Test
 	@DisplayName("로그아웃 요청에 FCM 토큰이 있으면 그 기기 토큰만 삭제하고 다른 기기 토큰은 남긴다")
 	void logoutWithTokenDeletesOnlyThatDevice() {
-		memberCommandService.logout(1L, new CommandLogout("web-token"));
+		memberCommandService.logout(1L, new CommandLogout("web-token", null));
 
 		assertThat(deletedTokens()).containsExactly(webToken);
 	}

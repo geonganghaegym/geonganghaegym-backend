@@ -24,6 +24,7 @@ import com.junghaebom.geonganghaegym.common.Utils;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.common.redis.RedisService;
 import com.junghaebom.geonganghaegym.config.OAuthProperties;
+import com.junghaebom.geonganghaegym.config.jwt.JwtTokenGenerator;
 import com.junghaebom.geonganghaegym.file.application.LocalFileStorageService;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandAssignNickname;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeEmail;
@@ -71,9 +72,20 @@ public class MemberCommandService {
 
 	public void logout(Long memberId, CommandLogout request) {
 		memberRepository.findById(memberId).ifPresent(m -> {
-			redisService.deleteValues(m.getUserId());
+			deleteRefreshToken(m, request);
 			memberTokenRepository.deleteAll(logoutTargetTokens(m, request));
 		});
+	}
+
+	// 요청한 기기의 갱신 토큰만 지운다. 같은 계정으로 로그인한 다른 기기는 계속 갱신할 수 있다
+	private void deleteRefreshToken(Member member, CommandLogout request) {
+		if (request == null || request.refreshToken() == null || request.refreshToken().isBlank()) {
+			return;
+		}
+		String key = JwtTokenGenerator.refreshTokenKey(request.refreshToken());
+		if (member.getUserId().equals(redisService.getValues(key))) {
+			redisService.deleteValues(key);
+		}
 	}
 
 	// 토큰을 모르는 클라이언트(앱 웹뷰·구버전)는 기존처럼 회원의 모든 기기 토큰을 지운다

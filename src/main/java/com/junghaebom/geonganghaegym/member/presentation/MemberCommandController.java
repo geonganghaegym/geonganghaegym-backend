@@ -50,6 +50,7 @@ public class MemberCommandController {
 
 	@Operation(summary = "로그아웃", description = """
 		로그아웃시 refreshToken, fcmToken을 삭제한다.
+		refreshToken을 보내면 그 기기의 갱신 토큰만 삭제한다. 같은 계정으로 로그인한 다른 기기는 영향을 받지 않는다.
 		fcmToken을 보내면 그 기기의 토큰만 삭제하고, 보내지 않으면 회원의 모든 기기 토큰을 삭제한다.
 		""")
 	@PostMapping("/logout")
