@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -120,11 +119,6 @@ public class MemberAuthCommandService {
 
 	private static final String APPLE_TOKEN_URI = "https://appleid.apple.com/auth/token";
 
-	private static final Set<String> COMPLIMENTARY_ACCOUNT_USER_IDS = Set.of(
-		"healthy-trainer0",
-		"healthy-student0"
-	);
-
 	public String sendEmailVerification(CommandValidateEmail request) {
 		memberRepository.findByEmail(request.email()).ifPresent(e -> {
 			throw new CustomException(MEMBER_EMAIL_DUPLICATION);
@@ -189,7 +183,7 @@ public class MemberAuthCommandService {
 	}
 
 	private void saveComplimentaryLoginHistory(CommandLoginMember request, Member member) {
-		if (!request.complimentaryLogin() || !COMPLIMENTARY_ACCOUNT_USER_IDS.contains(member.getUserId())) {
+		if (!request.complimentaryLogin() || !member.isComplimentaryAccount()) {
 			return;
 		}
 
@@ -221,6 +215,7 @@ public class MemberAuthCommandService {
 	public CommandFindMemberPasswordResult findMemberPW(CommandFindMemberPassword request) {
 		Member member = memberRepository.findByEmailAndName(request.email(), request.name())
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+		member.validateModifiableAccount();
 
 		if (member.getSocialType() != NONE) {
 			return CommandFindMemberPasswordResult.from(

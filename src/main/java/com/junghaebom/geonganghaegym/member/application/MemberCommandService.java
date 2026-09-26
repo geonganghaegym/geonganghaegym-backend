@@ -76,6 +76,7 @@ public class MemberCommandService {
 	public String deleteMember(Member loginMember) {
 		Member member = memberRepository.findById(loginMember.getId())
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+		member.validateModifiableAccount();
 
 		switch (member.getSocialType()) {
 			case KAKAO -> webClient.post()
@@ -173,6 +174,7 @@ public class MemberCommandService {
 
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+		member.validateModifiableAccount();
 
 		if (passwordEncoder.matches(request.changePassword1(), member.getPassword())) {
 			throw new IllegalArgumentException("이전 비밀번호와 동일합니다.");
@@ -188,6 +190,7 @@ public class MemberCommandService {
 	public RegisterMemberProfileResult registerProfile(MultipartFile uploadFile, Long memberId) {
 		Member findMember = memberRepository.findMemberById(memberId)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+		findMember.validateModifiableAccount();
 
 		if (uploadFile.isEmpty()) {
 			throw new IllegalArgumentException("프로필 사진을 등록해 주세요.");
@@ -210,6 +213,7 @@ public class MemberCommandService {
 	public DeleteMemberProfileResult deleteProfile(Long memberId) {
 		Member findMember = memberRepository.findMemberById(memberId)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+		findMember.validateModifiableAccount();
 
 		if (ObjectUtils.isEmpty(findMember.getMemberProfile())) {
 			throw new IllegalArgumentException("프로필 사진이 없습니다.");
@@ -228,6 +232,7 @@ public class MemberCommandService {
 	public CommandChangeNameResult changeName(CommandChangeName request, Long memberId) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+		member.validateModifiableAccount();
 		validateName(request.name());
 		member.changeName(request.name());
 		return CommandChangeNameResult.from(member);
@@ -262,6 +267,7 @@ public class MemberCommandService {
 
 		Member findMember = memberRepository.findById(memberId)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+		findMember.validateModifiableAccount();
 
 		String value = redisService.getValues(request.email());
 
