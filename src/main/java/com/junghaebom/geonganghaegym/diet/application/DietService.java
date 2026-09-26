@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import com.junghaebom.geonganghaegym.trainer.application.MemberDataAccessValidator;
 import com.junghaebom.geonganghaegym.common.CustomPaging;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.common.redis.RedisService;
@@ -59,6 +60,7 @@ public class DietService {
 	private final FileService fileService;
 	private final LocalFileStorageService fileStorageService;
 	private final MemberRepository memberRepository;
+	private final MemberDataAccessValidator memberDataAccessValidator;
 	private final RedisService redisService;
 	private final DietCommentRepository commentRepository;
 
@@ -75,6 +77,7 @@ public class DietService {
 	}
 
 	public CustomPaging<DietDto> getDiet(Long loginMemberId, Long memberId, Pageable pageable, String searchDate) {
+		memberDataAccessValidator.validateReadable(loginMemberId, memberId);
 		Page<DietDto> pageDtos = dietRepository.getDietOfMonth(loginMemberId, memberId, pageable, searchDate);
 		List<DietDto> dietDtos = pageDtos.stream().toList();
 		List<Long> ids = dietDtos.stream().map(DietDto::dietId).collect(Collectors.toList());

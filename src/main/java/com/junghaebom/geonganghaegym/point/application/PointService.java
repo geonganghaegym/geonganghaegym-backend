@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.junghaebom.geonganghaegym.trainer.application.MemberDataAccessValidator;
 import com.junghaebom.geonganghaegym.common.CustomPaging;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.course.application.CourseService;
@@ -50,6 +51,7 @@ public class PointService {
 	private final TrainerMemberMappingRepository mappingRepository;
 	private final PointRepository pointRepository;
 	private final MemberRepository memberRepository;
+	private final MemberDataAccessValidator memberDataAccessValidator;
 	private final StudentScheduleRepository studentScheduleRepository;
 	private final CourseRepository courseRepository;
 	private final CourseService courseService;
@@ -108,7 +110,8 @@ public class PointService {
 		return false;
 	}
 
-	public CustomPaging getPoint(Long memberId, String searchDate, Pageable pageable) {
+	public CustomPaging getPoint(Long loginMemberId, Long memberId, String searchDate, Pageable pageable) {
+		memberDataAccessValidator.validateReadable(loginMemberId, memberId);
 		memberRepository.findByIdAndMemberTypeAndDelYnFalse(memberId, STUDENT)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
 		Page<Point> histories = pointRepository.getPoint(memberId, searchDate, pageable);

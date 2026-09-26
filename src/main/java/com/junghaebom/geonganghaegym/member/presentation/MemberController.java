@@ -111,14 +111,17 @@ public class MemberController {
 	@GetMapping("/point")
 	public ApiResult<CustomPaging> getMyPoint(@AuthenticationPrincipal CustomMemberDetails customMemberDetails,
 		String searchDate, Pageable pageable) {
-		return ApiResult.success("포인트가 조회되었습니다.", pointService.getPoint(customMemberDetails.getMember().getId(), searchDate, pageable));
+		Long memberId = customMemberDetails.getMemberId();
+		return ApiResult.success("포인트가 조회되었습니다.", pointService.getPoint(memberId, memberId, searchDate, pageable));
 	}
 
 	@Operation(summary = "트레이너가 학생의 포인트 조회")
 	@GetMapping("/{memberId}/point")
 	@PreAuthorize("hasAuthority('ROLE_TRAINER')")
-	public ApiResult<CustomPaging> getPoint(@PathVariable Long memberId, String searchDate, Pageable pageable) {
-		return ApiResult.success("포인트가 조회되었습니다.", pointService.getPoint(memberId, searchDate, pageable));
+	public ApiResult<CustomPaging> getPoint(@PathVariable Long memberId, String searchDate, Pageable pageable,
+		@AuthenticationPrincipal CustomMemberDetails customMemberDetails) {
+		return ApiResult.success("포인트가 조회되었습니다.",
+			pointService.getPoint(customMemberDetails.getMemberId(), memberId, searchDate, pageable));
 	}
 
 	@Operation(summary = "학생이 트레이너와 매핑 여부 조회")

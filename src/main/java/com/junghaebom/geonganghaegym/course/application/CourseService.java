@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.junghaebom.geonganghaegym.trainer.application.MemberDataAccessValidator;
 import com.junghaebom.geonganghaegym.common.CustomPaging;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.course.presentation.dto.CourseDto;
@@ -49,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CourseService {
 
 	private final MemberRepository memberRepository;
+	private final MemberDataAccessValidator memberDataAccessValidator;
 	private final CourseRepository courseRepository;
 	private final CourseHistoryRepository courseHistoryRepository;
 	private final TrainerMemberMappingRepository mappingRepository;
@@ -157,6 +159,7 @@ public class CourseService {
 	}
 
 	public CustomPaging getCourse(Member loginMember, Pageable pageable, Long memberId, String searchDate) {
+		memberDataAccessValidator.validateReadable(loginMember.getId(), memberId);
 		Member member = memberRepository.findByIdAndMemberTypeAndDelYnFalse(memberId, STUDENT)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
 

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import com.junghaebom.geonganghaegym.trainer.application.MemberDataAccessValidator;
 import com.junghaebom.geonganghaegym.common.CustomPaging;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.member.presentation.dto.MemberDto;
@@ -48,6 +49,7 @@ public class WorkoutHistoryService {
 	private final WorkoutHistoryRepository workoutHistoryRepository;
 	private final CompletedExerciseRepository completedExerciseRepository;
 	private final MemberRepository memberRepository;
+	private final MemberDataAccessValidator memberDataAccessValidator;
 	private final WorkoutFileRepository workoutFileRepository;
 
 	public WorkoutHistoryDto addWorkoutHistory(Member member, HistoryAddCommand command) {
@@ -72,6 +74,7 @@ public class WorkoutHistoryService {
 	}
 
 	public CustomPaging getWorkoutHistory(Member loginMember, Long memberId, Pageable pageable, String searchDate) {
+		memberDataAccessValidator.validateReadable(loginMember.getId(), memberId);
 		Member member = memberRepository.findByIdAndDelYnFalse(memberId)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
 
