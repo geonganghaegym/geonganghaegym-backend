@@ -76,7 +76,6 @@ public class SecurityConfig {
 			CorsConfiguration config = new CorsConfiguration();
 			config.setAllowedHeaders(Collections.singletonList("*"));
 			config.setAllowedMethods(Collections.singletonList("*"));
-			// to-be-healthy.shop 도메인은 모두 폐기되어 geonganghaejim.site로 이전했다.
 			config.setAllowedOriginPatterns(List.of(
 				"http://localhost:3000",
 				"https://geonganghaejim.site",
