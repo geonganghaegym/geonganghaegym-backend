@@ -25,6 +25,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
+      # globally_quoted_identifiers와 함께 쓰면 Hibernate 7 기본 전략은 snake_case 변환을 건너뛴다(QuotedSnakeCaseNamingStrategy 참고)
+      naming:
+        physical-strategy: com.junghaebom.geonganghaegym.config.QuotedSnakeCaseNamingStrategy
 
     properties:
       hibernate:
