@@ -102,8 +102,7 @@ public class CourseService {
 	}
 
 	public void deleteCourseByTrainer(Long trainerId, Long courseId) {
-		Course course = courseRepository.findById(courseId)
-			.orElseThrow(() -> new CustomException(COURSE_NOT_FOUND));
+		Course course = findOwnedCourse(trainerId, courseId);
 		Long memberId = course.getMember().getId();
 
 		//수업 진행 횟수가 1회이상이면 삭제 불가
@@ -125,8 +124,7 @@ public class CourseService {
 	}
 
 	public void deleteCourseAndCancelReservation(Long trainerId, Long courseId) {
-		Course course = courseRepository.findById(courseId)
-			.orElseThrow(() -> new CustomException(COURSE_NOT_FOUND));
+		Course course = findOwnedCourse(trainerId, courseId);
 		Long memberId = course.getMember().getId();
 
 		//해당 수강권으로 예약된 수업 조회
@@ -141,7 +139,13 @@ public class CourseService {
 		deleteCourse(trainerId, course);
 	}
 
-	public void deleteCourse(Long trainerId, Course course) {
+	private Course findOwnedCourse(Long trainerId, Long courseId) {
+		return courseRepository.findById(courseId)
+			.filter(course -> trainerId.equals(course.getTrainer().getId()))
+			.orElseThrow(() -> new CustomException(COURSE_NOT_FOUND));
+	}
+
+	private void deleteCourse(Long trainerId, Course course) {
 		Long completedLessonCnt = getCompletedLessonCnt(course.getMember().getId(), course.getCourseId());
 		course.deleteSchedule();
 		Long courseId = course.getCourseId();
