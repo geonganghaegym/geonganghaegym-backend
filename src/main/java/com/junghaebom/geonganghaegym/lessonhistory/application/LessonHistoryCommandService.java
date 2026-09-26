@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -185,6 +187,7 @@ public class LessonHistoryCommandService {
 			lessonHistoryFilesRepository.deleteAll(lessonHistory.getFiles());
 			lessonHistory.getFiles().clear();
 		}
+		deleteRemovedFiles(existingFiles, savedFiles);
 
 		return CommandUpdateLessonHistoryResult.from(lessonHistory, savedFiles);
 	}
@@ -291,6 +294,7 @@ public class LessonHistoryCommandService {
 			throw new CustomException(ErrorCode.LESSON_HISTORY_COMMENT_NOT_FOUND);
 		}
 
+		List<LessonHistoryFiles> existingFiles = new ArrayList<>(comment.getFiles());
 		List<LessonHistoryFiles> savedFiles = new ArrayList<>();
 
 		if (!request.uploadFiles().isEmpty()) {
@@ -328,6 +332,7 @@ public class LessonHistoryCommandService {
 			lessonHistoryFilesRepository.deleteAll(comment.getFiles());
 			comment.getFiles().clear();
 		}
+		deleteRemovedFiles(existingFiles, savedFiles);
 
 		comment.updateLessonHistoryComment(request.content());
 
@@ -448,6 +453,17 @@ public class LessonHistoryCommandService {
 			fileStorageService.delete(filePath);
 		}
 		lessonHistoryFilesRepository.deleteAll(files);
+	}
+
+	/** 수정으로 빠진 파일은 행만 지워지고 디스크에 남으므로 여기서 지운다. 유지된 파일은 경로로 비교해 건드리지 않는다. */
+	private void deleteRemovedFiles(List<LessonHistoryFiles> before, List<LessonHistoryFiles> after) {
+		Set<String> keptPaths = after.stream()
+			.map(file -> fileStorageService.extractFilePath(file.getFileUrl()))
+			.collect(Collectors.toSet());
+		before.stream()
+			.map(file -> fileStorageService.extractFilePath(file.getFileUrl()))
+			.filter(path -> !keptPaths.contains(path))
+			.forEach(fileStorageService::delete);
 	}
 
 	/**
