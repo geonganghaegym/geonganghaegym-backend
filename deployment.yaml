@@ -75,8 +75,6 @@ spec:
             - secretRef:
                 name: backend-mail-secret
             - secretRef:
-                name: backend-aws-secret
-            - secretRef:
                 name: backend-oauth-secret
           volumeMounts:
             - name: files

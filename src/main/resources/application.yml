@@ -134,8 +134,8 @@ management:
 
 info:
   app:
-    name: to-be-healthy-actuator
-    company: to-be-healthy
+    name: geonganghaegym-actuator
+    company: geonganghaegym
 
 ---
 spring:
