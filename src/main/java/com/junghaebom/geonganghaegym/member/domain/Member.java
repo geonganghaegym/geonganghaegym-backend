@@ -34,6 +34,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -80,7 +81,7 @@ public class Member extends BaseTimeEntity<Member, Long> {
 	@ToString.Exclude
 	private String password;
 	private String name;
-	@ManyToOne(fetch = LAZY, cascade = ALL)
+	@OneToOne(fetch = LAZY, cascade = ALL, orphanRemoval = true)
 	@JoinColumn(name = "member_profile_id")
 	@Nullable
 	@ToString.Exclude
@@ -253,7 +254,11 @@ public class Member extends BaseTimeEntity<Member, Long> {
 	}
 
 	public void registerProfile(String fileName, String fileUrl) {
-		this.memberProfile = MemberProfile.create(fileName, fileUrl, this);
+		if (this.memberProfile == null) {
+			this.memberProfile = MemberProfile.create(fileName, fileUrl);
+			return;
+		}
+		this.memberProfile.change(fileName, fileUrl);
 	}
 
 	public String getTransformedMemberType() {
