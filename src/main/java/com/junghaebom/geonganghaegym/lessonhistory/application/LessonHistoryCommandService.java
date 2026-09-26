@@ -7,6 +7,7 @@ import static com.junghaebom.geonganghaegym.common.Utils.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -144,6 +145,7 @@ public class LessonHistoryCommandService {
 
 		lessonHistory.updateLessonHistory(request.title(), request.content());
 
+		List<LessonHistoryFiles> existingFiles = new ArrayList<>(lessonHistory.getFiles());
 		lessonHistory.getFiles().clear();
 
 		List<LessonHistoryFiles> savedFiles = new ArrayList<>();
@@ -165,7 +167,12 @@ public class LessonHistoryCommandService {
 							lessonHistory.getTrainer(), lessonHistory);
 						savedFiles.add(newFile);
 					} else {
-						LessonHistoryFiles newFile = new LessonHistoryFiles(file.fileUrl(), idx + 1,
+						Optional<String> existingUrl = findExistingFileUrl(existingFiles, file.fileUrl());
+						if (existingUrl.isEmpty()) {
+							log.warn("[수업일지 수정] 이 글에 없던 파일 URL은 무시한다: {}", file.fileUrl());
+							continue;
+						}
+						LessonHistoryFiles newFile = new LessonHistoryFiles(existingUrl.get(), idx + 1,
 							lessonHistory.getTrainer(), lessonHistory);
 						savedFiles.add(newFile);
 					}
@@ -303,7 +310,12 @@ public class LessonHistoryCommandService {
 							comment.getWriter(), comment.getLessonHistory(), comment);
 						savedFiles.add(newFile);
 					} else {
-						LessonHistoryFiles newFile = new LessonHistoryFiles(file.fileUrl(), idx + 1,
+						Optional<String> existingUrl = findExistingFileUrl(comment.getFiles(), file.fileUrl());
+						if (existingUrl.isEmpty()) {
+							log.warn("[수업일지 댓글 수정] 이 댓글에 없던 파일 URL은 무시한다: {}", file.fileUrl());
+							continue;
+						}
+						LessonHistoryFiles newFile = new LessonHistoryFiles(existingUrl.get(), idx + 1,
 							comment.getWriter(), comment.getLessonHistory(), comment);
 						savedFiles.add(newFile);
 					}
@@ -436,6 +448,18 @@ public class LessonHistoryCommandService {
 			fileStorageService.delete(filePath);
 		}
 		lessonHistoryFilesRepository.deleteAll(files);
+	}
+
+	/**
+	 * temp가 아닌 URL은 이 글·댓글에 원래 붙어 있던 파일일 때만 유지한다. 다른 사람 파일 URL을 붙여 두고 글을 지우면
+	 * 그 파일이 삭제되기 때문이다. 옛 도메인으로 저장된 URL도 맞추도록 URL 전체가 아니라 파일 경로로 비교한다.
+	 */
+	private Optional<String> findExistingFileUrl(List<LessonHistoryFiles> existingFiles, String fileUrl) {
+		String filePath = fileStorageService.extractFilePath(fileUrl);
+		return existingFiles.stream()
+			.map(LessonHistoryFiles::getFileUrl)
+			.filter(url -> fileStorageService.extractFilePath(url).equals(filePath))
+			.findFirst();
 	}
 
 	private int findFileIndex(List<LessonHistoryFiles> files, String fileUrl) {
