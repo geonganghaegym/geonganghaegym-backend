@@ -75,7 +75,7 @@ public class NotificationRepositoryImpl implements NotificationRepositoryCustom 
 								.when(notification.receiver.id.eq(receiverId).and(notification.isRead.eq(false)))
 								.then(1)
 								.otherwise(0)
-								.sum().gt(0)
+								.sumAggregate().gt(0)
 						)
 						.then(true)
 						.otherwise(false)

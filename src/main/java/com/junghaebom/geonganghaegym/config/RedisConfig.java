@@ -1,6 +1,6 @@
 package com.junghaebom.geonganghaegym.config;
 
-import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableRedisRepositories
 public class RedisConfig {
-	private final RedisProperties redisProperties;
+	private final DataRedisProperties redisProperties;
 
 	@Bean
 	public RedisConnectionFactory redisConnectionFactory() {

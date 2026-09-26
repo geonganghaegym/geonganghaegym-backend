@@ -40,8 +40,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -95,6 +93,9 @@ import com.junghaebom.geonganghaegym.trainer.application.TrainerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -268,7 +269,7 @@ public class MemberAuthCommandService {
 			response.refreshToken()
 		);
 
-		MemberProfile profile = getProfile(authorization.response().profileImage(), member);
+		MemberProfile profile = getProfile(authorization.response().profileImage());
 		member.setMemberProfile(profile);
 		memberRepository.save(member);
 
@@ -294,7 +295,7 @@ public class MemberAuthCommandService {
 		validateSocialJoinEmail(email);
 		String name = defaultNameFrom(getKakaoNickname(response), email);
 		Member member = Member.join(email, name, request.memberType(), KAKAO, String.valueOf(response.id()));
-		MemberProfile profile = getProfile(getKakaoProfileImage(response), member);
+		MemberProfile profile = getProfile(getKakaoProfileImage(response));
 		member.setMemberProfile(profile);
 		memberRepository.save(member);
 
@@ -321,7 +322,7 @@ public class MemberAuthCommandService {
 		validateSocialJoinEmail(userInfo.email());
 		String name = defaultNameFrom(userInfo.name(), userInfo.email());
 		Member member = Member.join(userInfo.email(), name, request.memberType(), GOOGLE, userInfo.id());
-		MemberProfile profile = getProfile(userInfo.picture(), member);
+		MemberProfile profile = getProfile(userInfo.picture());
 		member.setMemberProfile(profile);
 		memberRepository.save(member);
 
@@ -706,7 +707,7 @@ public class MemberAuthCommandService {
 		HashMap<String, String> map = new HashMap<>();
 		try {
 			map = objectMapper.readValue(mappedData, HashMap.class);
-		} catch (JsonProcessingException e) {
+		} catch (JacksonException e) {
 			log.error("error", e);
 		}
 		return map;
@@ -754,7 +755,7 @@ public class MemberAuthCommandService {
 	 * 프로필 이미지 제공에 동의하지 않으면 소셜에서 내려주지 않는다.
 	 * 가입에 필수인 정보가 아니므로 값이 없거나 내려받기에 실패해도 가입은 계속 진행한다.
 	 */
-	private MemberProfile getProfile(String profileImage, Member member) {
+	private MemberProfile getProfile(String profileImage) {
 		if (isEmpty(profileImage)) {
 			return null;
 		}
@@ -764,7 +765,7 @@ public class MemberAuthCommandService {
 			String savedFileName = createProfileName("origin/profile/");
 			try (InputStream inputStream = new ByteArrayInputStream(image)) {
 				String fileUrl = fileStorageService.store(savedFileName, inputStream);
-				return MemberProfile.create(savedFileName, fileUrl, member);
+				return MemberProfile.create(savedFileName, fileUrl);
 			}
 		} catch (Exception e) {
 			log.warn("소셜 프로필 이미지 저장에 실패했습니다. url: {}", profileImage, e);

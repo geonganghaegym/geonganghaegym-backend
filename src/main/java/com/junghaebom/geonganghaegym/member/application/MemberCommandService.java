@@ -40,6 +40,7 @@ import com.junghaebom.geonganghaegym.member.presentation.dto.out.RegisterMemberP
 import com.junghaebom.geonganghaegym.member.domain.AlarmStatus;
 import com.junghaebom.geonganghaegym.member.domain.AlarmType;
 import com.junghaebom.geonganghaegym.member.domain.Member;
+import com.junghaebom.geonganghaegym.member.domain.MemberProfile;
 import com.junghaebom.geonganghaegym.member.repository.MemberRepository;
 import com.junghaebom.geonganghaegym.point.repository.PointRepository;
 import com.junghaebom.geonganghaegym.push.domain.MemberToken;
@@ -212,9 +213,11 @@ public class MemberCommandService {
 			.substring(uploadFile.getOriginalFilename().lastIndexOf("."));
 		String savedFileName = createFileName("origin/profile/") + extension;
 
+		String oldFilePath = profileFilePath(findMember);
 		try (InputStream inputStream = uploadFile.getInputStream()) {
 			String fileUrl = fileStorageService.store(savedFileName, inputStream);
 			findMember.registerProfile(savedFileName, fileUrl);
+			deleteIfPresent(oldFilePath);
 			return RegisterMemberProfileResult.from(fileUrl, savedFileName);
 		} catch (IOException e) {
 			log.error("error", e);
@@ -234,11 +237,23 @@ public class MemberCommandService {
 		String fileUrl = findMember.getMemberProfile().getFileUrl();
 		String fileName = findMember.getMemberProfile().getFileName();
 
-		fileStorageService.delete(fileName);
+		// V2 등록은 fileName에 경로(origin/profile/)가 없어 fileName으로 지우면 파일이 남는다. URL에서 경로를 뽑는다.
+		fileStorageService.delete(fileStorageService.extractFilePath(fileUrl));
 
 		findMember.deleteProfile();
 
 		return DeleteMemberProfileResult.from(fileUrl, fileName);
+	}
+
+	private String profileFilePath(Member member) {
+		MemberProfile profile = member.getMemberProfile();
+		return profile == null ? null : fileStorageService.extractFilePath(profile.getFileUrl());
+	}
+
+	private void deleteIfPresent(String filePath) {
+		if (filePath != null) {
+			fileStorageService.delete(filePath);
+		}
 	}
 
 	public CommandChangeNameResult changeName(CommandChangeName request, Long memberId) {

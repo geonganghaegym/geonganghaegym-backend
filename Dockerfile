@@ -1,4 +1,4 @@
-FROM gradle:8.5-jdk17 AS builder
+FROM eclipse-temurin:17-jdk-jammy AS builder
 WORKDIR /build
 COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle

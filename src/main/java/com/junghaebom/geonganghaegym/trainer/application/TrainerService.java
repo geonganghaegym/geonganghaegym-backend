@@ -43,6 +43,8 @@ import com.junghaebom.geonganghaegym.trainer.respository.TrainerMemberMappingRep
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import tools.jackson.databind.ObjectMapper;
+
 @Service
 @RequiredArgsConstructor
 @Transactional

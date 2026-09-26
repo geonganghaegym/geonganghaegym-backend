@@ -7,7 +7,6 @@ import static com.junghaebom.geonganghaegym.member.domain.SocialType.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.common.redis.RedisService;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.FindMemberUserId;
@@ -20,6 +19,8 @@ import com.junghaebom.geonganghaegym.member.repository.NonMemberRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
