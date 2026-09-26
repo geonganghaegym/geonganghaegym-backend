@@ -31,6 +31,7 @@ public class MemberToken extends BaseTimeEntity<MemberToken, Long> {
 	@Enumerated(EnumType.STRING)
 	private DeviceType deviceType;
 
+	@Column(unique = true)
 	private String token;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -48,8 +49,8 @@ public class MemberToken extends BaseTimeEntity<MemberToken, Long> {
 		return new MemberToken(member, token, deviceType);
 	}
 
-	public void changeToken(String token, DeviceType deviceType) {
-		this.token = token;
+	public void changeOwner(Member member, DeviceType deviceType) {
+		this.member = member;
 		this.deviceType = deviceType;
 	}
 }
