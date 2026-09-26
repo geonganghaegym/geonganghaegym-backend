@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -260,40 +257,6 @@ public class TrainerScheduleRepositoryImpl implements TrainerScheduleRepositoryC
 			)
 			.orderBy(schedule.lessonDt.asc(), schedule.lessonStartTime.asc())
 			.fetch();
-	}
-
-	@Override
-	public Page<Schedule> findAllScheduleByStudentId(
-		Long studentId,
-		Pageable pageable,
-		Long trainerId
-	) {
-		List<Schedule> results = queryFactory
-			.select(schedule)
-			.from(schedule)
-			.leftJoin(schedule.applicant, new QMember("applicant")).fetchJoin()
-			.where(
-				schedule.applicant.id.eq(studentId),
-				trainerIdEq(trainerId)
-			)
-			.offset(pageable.getOffset())
-			.limit(pageable.getPageSize())
-			.orderBy(schedule.lessonDt.desc(), schedule.lessonStartTime.desc())
-			.fetch();
-
-		var totalCount = queryFactory
-			.select(schedule.count())
-			.from(schedule)
-			.leftJoin(schedule.applicant, new QMember("applicant"))
-			.where(
-				schedule.applicant.id.eq(studentId),
-				trainerIdEq(trainerId)
-			);
-
-		return PageableExecutionUtils.getPage(results, pageable, () -> {
-			Long count = totalCount.fetchOne();
-			return count != null ? count : 0L;
-		});
 	}
 
 	@Override

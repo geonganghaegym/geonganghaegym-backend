@@ -57,36 +57,6 @@ public record ScheduleCommandResult(
 			reservationStatus, trainerName, applicantName, waitingByName);
 	}
 
-	public static ScheduleCommandResult from(Schedule entity) {
-		Long scheduleId = entity.getId();
-		LocalDate lessonDt = entity.getLessonDt();
-		LocalTime lessonStartTime = entity.getLessonStartTime();
-		LocalTime lessonEndTime = entity.getLessonEndTime();
-		ReservationStatus reservationStatus = entity.getReservationStatus();
-		String trainerName = null;
-		String applicantName = null;
-		String waitingByName = null;
-
-		if (!ObjectUtils.isEmpty(entity.getReservationStatus())) {
-			reservationStatus = entity.getReservationStatus();
-		}
-
-		if (!ObjectUtils.isEmpty(entity.getTrainer())) {
-			trainerName = entity.getTrainer().getName() + " 트레이너";
-		}
-
-		if (!ObjectUtils.isEmpty(entity.getApplicant())) {
-			applicantName = entity.getApplicant().getName();
-		}
-
-		if (!ObjectUtils.isEmpty(entity.getScheduleWaiting())) {
-			waitingByName = entity.getScheduleWaiting().get(0).getMember().getName();
-		}
-
-		return new ScheduleCommandResult(scheduleId, lessonDt, lessonStartTime, lessonEndTime,
-			reservationStatus, trainerName, applicantName, waitingByName);
-	}
-
 	public ScheduleCommandResult withReservationStatus(ReservationStatus newStatus) {
 		return new ScheduleCommandResult(scheduleId, lessonDt, lessonStartTime, lessonEndTime,
 			newStatus, trainerName, applicantName, waitingByName);

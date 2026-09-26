@@ -25,10 +25,7 @@ import com.junghaebom.geonganghaegym.member.domain.Member;
 import com.junghaebom.geonganghaegym.member.repository.MemberRepository;
 import com.junghaebom.geonganghaegym.push.presentation.dto.in.CommandRegisterToken;
 import com.junghaebom.geonganghaegym.push.presentation.dto.in.CommandRegisterTokenWithWebView;
-import com.junghaebom.geonganghaegym.push.presentation.dto.in.CommandSendPushAlarm;
-import com.junghaebom.geonganghaegym.push.presentation.dto.in.CommandSendPushAlarmToMember;
 import com.junghaebom.geonganghaegym.push.presentation.dto.out.CommandRegisterTokenResult;
-import com.junghaebom.geonganghaegym.push.presentation.dto.out.CommandSendPushAlarmResult;
 import com.junghaebom.geonganghaegym.push.domain.DeviceType;
 import com.junghaebom.geonganghaegym.push.domain.MemberToken;
 import com.junghaebom.geonganghaegym.push.repository.MemberTokenRepository;
@@ -68,27 +65,6 @@ public class PushCommandService {
 				found -> found.changeOwner(member, deviceType),
 				() -> memberTokenRepository.save(MemberToken.register(member, token, deviceType))
 			);
-	}
-
-	public CommandSendPushAlarmResult sendPushAlarm(CommandSendPushAlarm request) {
-		try {
-			send(createMessage(request.token(), request.title(), request.message(), request.clickUrl()));
-		} catch (FirebaseMessagingException e) {
-			throw new RuntimeException("Failed to send push alarm", e);
-		}
-
-		return CommandSendPushAlarmResult.from(request.title(), request.message());
-	}
-
-	public CommandSendPushAlarmResult sendPushAlarm(Long memberId, CommandSendPushAlarmToMember request) {
-		List<MemberToken> memberTokens = memberTokenRepository.findAllByMemberId(memberId);
-		if (memberTokens.isEmpty()) {
-			throw new CustomException(ErrorCode.MEMBER_NOT_FOUND);
-		}
-
-		sendToAll(memberTokens, request.title(), request.message(), null);
-
-		return CommandSendPushAlarmResult.from(request.title(), request.message());
 	}
 
 	public void sendToAll(List<MemberToken> memberTokens, String title, String message, String clickUrl) {

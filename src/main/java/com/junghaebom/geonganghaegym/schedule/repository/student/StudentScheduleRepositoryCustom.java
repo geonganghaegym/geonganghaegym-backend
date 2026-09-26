@@ -10,8 +10,6 @@ import com.junghaebom.geonganghaegym.schedule.presentation.dto.out.ScheduleComma
 public interface StudentScheduleRepositoryCustom {
 	List<ScheduleCommandResult> findAllSchedule(StudentScheduleCond searchCond, Long trainerId, Member member);
 
-	List<ScheduleCommandResult> findAllByApplicantId(Long memberId);
-
 	List<MyReservation> findNewReservation(Long memberId, StudentScheduleCond searchCond);
 
 	List<MyReservation> findOldReservation(Long memberId, String searchDate);

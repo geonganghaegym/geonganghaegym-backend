@@ -38,11 +38,6 @@ public class StudentScheduleService {
 	private final TrainerMemberMappingRepository mappingRepository;
 	private final CourseService courseService;
 
-	public List<ScheduleCommandResult> findAllByApplicantId(Long memberId) {
-		List<ScheduleCommandResult> result = studentScheduleRepository.findAllByApplicantId(memberId);
-		return result.isEmpty() ? null : result;
-	}
-
 	public ScheduleCommandResponse findAllScheduleOfTrainer(StudentScheduleCond searchCond, Member member) {
 
 		TrainerMemberMapping mapping = mappingRepository.findTop1ByMemberIdOrderByCreatedAtDesc(member.getId())

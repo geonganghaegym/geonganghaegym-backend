@@ -167,21 +167,6 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
 	}
 
 	@Override
-	public List<Member> findAllTrainerByGym(Long gymId) {
-		return queryFactory
-			.select(member)
-			.from(member)
-			.leftJoin(member.memberProfile).fetchJoin()
-			.where(
-				member.gym.id.eq(gymId),
-				member.memberType.eq(TRAINER),
-				member.delYn.eq(false)
-			)
-			.orderBy(member.id.desc())
-			.fetch();
-	}
-
-	@Override
 	public List<Member> findMemberTokenById(List<Long> memberId) {
 		return queryFactory
 			.select(member)

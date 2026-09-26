@@ -229,10 +229,6 @@ public class Member extends BaseTimeEntity<Member, Long> {
 		}
 	}
 
-	public void changeTrainerFeedback(AlarmStatus alarmStatus) {
-		this.feedbackAlarmStatus = alarmStatus;
-	}
-
 	public void changeScheduleNotice(AlarmStatus alarmStatus) {
 		this.scheduleNoticeStatus = alarmStatus;
 	}
