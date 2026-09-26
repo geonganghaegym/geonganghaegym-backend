@@ -66,10 +66,10 @@ listener/transaction misconfiguration) are not caught by `./gradlew test`. When 
 
 ## Deployment
 
-- Pushing to `develop` deploys to production automatically: GitHub Actions builds the image, pushes it to GHCR,
+- Pushing to `main` deploys to production automatically: GitHub Actions builds the image, pushes it to GHCR,
   bumps the tag in `seonwooj0810-homelab/homelab-gitops`, and Argo CD rolls it out. CI runs no tests and the Docker
   build uses `-x test`, so run `./gradlew clean build` before pushing.
-- The root `deployment.yaml` is the live production Deployment: the GitOps repo pulls it directly from the `develop`
+- The root `deployment.yaml` is the live production Deployment: the GitOps repo pulls it directly from the `main`
   branch. Changes to it reach production on the next sync.
 
 ## Security & Configuration Tips

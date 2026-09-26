@@ -9,11 +9,11 @@ import jakarta.validation.constraints.Pattern;
 
 @Schema(title = "MemberJoinCommand", description = "회원가입 DTO")
 public record CommandJoinMember(
-	@Schema(description = "아이디", example = "to-be-healthy")
+	@Schema(description = "아이디", example = "geonganghaegym")
 	@NotEmpty(message = "아이디를 입력해 주세요.")
 	String userId,
 
-	@Schema(description = "이메일", example = "to-be-healthy@gmail.com")
+	@Schema(description = "이메일", example = "geonganghaegym@example.com")
 	@NotEmpty(message = "이메일을 입력해 주세요.")
 	@Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "올바른 이메일 형식을 입력해 주세요.")
 	String email,
