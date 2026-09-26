@@ -18,8 +18,6 @@ public interface MemberRepositoryCustom {
 
 	MemberDetailResult getMemberOfTrainer(Long memberId);
 
-	List<Member> findAllTrainerByGym(Long gymId);
-
 	List<MemberInTeamResult> getBestStudent(Long trainerId);
 
 	Optional<Member> findMemberById(Long memberId);

@@ -4,9 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import com.junghaebom.geonganghaegym.lessonhistory.presentation.dto.in.UnwrittenLessonHistorySearchCond;
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.in.CommandRegisterSchedule;
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.out.FeedbackNotificationToTrainer;
@@ -47,8 +44,6 @@ public interface TrainerScheduleRepositoryCustom {
 	List<Schedule> findAllUnwrittenLessonHistory(UnwrittenLessonHistorySearchCond request, Long memberId);
 
 	List<Schedule> findAllSimpleLessonHistoryByMemberId(Long studentId, Long trainerId);
-
-	Page<Schedule> findAllScheduleByStudentId(Long studentId, Pageable pageable, Long trainerId);
 
 	List<FeedbackNotificationToTrainer> findAllFeedbackNotificationToTrainer();
 }

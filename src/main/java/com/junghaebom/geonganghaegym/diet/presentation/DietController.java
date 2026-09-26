@@ -1,7 +1,6 @@
 package com.junghaebom.geonganghaegym.diet.presentation;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.junghaebom.geonganghaegym.ApiResult;
 import com.junghaebom.geonganghaegym.config.security.CustomMemberDetails;
@@ -23,8 +21,6 @@ import com.junghaebom.geonganghaegym.diet.presentation.dto.in.DietAddCommand;
 import com.junghaebom.geonganghaegym.diet.presentation.dto.in.DietAddCommandAtHome;
 import com.junghaebom.geonganghaegym.diet.presentation.dto.in.DietUpdateCommand;
 import com.junghaebom.geonganghaegym.diet.presentation.dto.out.DietUploadDaysResult;
-import com.junghaebom.geonganghaegym.workout.application.FileService;
-import com.junghaebom.geonganghaegym.workout.presentation.dto.in.RegisterFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,15 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 public class DietController {
 
 	private final DietService dietService;
-	private final FileService fileService;
-
-	@Operation(summary = "식단기록 첨부파일 등록")
-	@PostMapping("/file")
-	public ApiResult<List<RegisterFile>> addDietFile(
-		@AuthenticationPrincipal CustomMemberDetails customMemberDetails,
-		@Valid List<MultipartFile> uploadFiles) {
-		return ApiResult.success("첨부파일이 등록되었습니다.", fileService.uploadFiles("diet", uploadFiles, customMemberDetails.getMember()));
-	}
 
 	@Operation(summary = "홈에서 식단기록 등록")
 	@PostMapping("/home")
@@ -63,12 +50,6 @@ public class DietController {
 	public ApiResult<DietDto> addDiet(@AuthenticationPrincipal CustomMemberDetails customMemberDetails,
 		@RequestBody @Valid DietAddCommand command) {
 		return ApiResult.success("식단기록이 등록되었습니다.", dietService.addDiet(customMemberDetails.getMember(), command));
-	}
-
-	@Operation(summary = "오늘 식단 조회")
-	@GetMapping("/today")
-	public ApiResult<DietDto> getTodayDiet(@AuthenticationPrincipal CustomMemberDetails customMemberDetails) {
-		return ApiResult.success("식단기록이 조회되었습니다.", dietService.getTodayDiet(customMemberDetails.getMember().getId()));
 	}
 
 	@Operation(summary = "식단기록 상세 조회")

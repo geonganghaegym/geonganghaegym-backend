@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.common.redis.RedisService;
-import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandValidateEmail;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.FindMemberUserId;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.FindMemberUserId.FindMemberUserIdResult;
 import com.junghaebom.geonganghaegym.member.presentation.dto.out.InvitationMappingResult;
@@ -43,13 +42,6 @@ public class MemberAuthService {
 			throw new CustomException(MEMBER_ID_DUPLICATION);
 		});
 
-		return true;
-	}
-
-	public Boolean validateEmailDuplication(CommandValidateEmail request) {
-		memberRepository.findByEmail(request.email()).ifPresent(m -> {
-			throw new CustomException(MEMBER_EMAIL_DUPLICATION);
-		});
 		return true;
 	}
 

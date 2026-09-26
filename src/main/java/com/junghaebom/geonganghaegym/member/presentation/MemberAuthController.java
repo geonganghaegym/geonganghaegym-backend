@@ -1,7 +1,6 @@
 package com.junghaebom.geonganghaegym.member.presentation;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.junghaebom.geonganghaegym.ApiResult;
 import com.junghaebom.geonganghaegym.member.application.MemberAuthService;
-import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandValidateEmail;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.FindMemberUserId;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.FindMemberUserId.FindMemberUserIdResult;
 import com.junghaebom.geonganghaegym.member.presentation.dto.out.InvitationMappingResult;
@@ -35,12 +33,6 @@ public class MemberAuthController {
 	@GetMapping("/validation/user-id")
 	public ApiResult<Boolean> validateUsernameDuplication(@RequestParam String userId) {
 		return ApiResult.success("사용할 수 있는 아이디입니다.", memberAuthService.validateUserIdDuplication(userId));
-	}
-
-	@Operation(summary = "이메일 중복을 확인한다.")
-	@GetMapping("/validation/email")
-	public ApiResult<Boolean> validateEmailDuplication(@ModelAttribute @Valid CommandValidateEmail request) {
-		return ApiResult.success("사용 가능한 이메일입니다.", memberAuthService.validateEmailDuplication(request));
 	}
 
 	@Operation(summary = "아이디를 찾는다.", description = "이메일과 이름을 기준으로 일치하는 아이디를 찾는다.(소셜은 찾을 수 없음)")

@@ -50,23 +50,9 @@ public class MemberController {
 		return ApiResult.success("회원정보가 조회 되었습니다.", memberService.getMemberInfo(member.getMemberId()));
 	}
 
-	@Operation(summary = "회원 정보조회")
-	@GetMapping("/{memberId}")
-	public ApiResult<MemberInfoResult> getMemberInfo(@PathVariable Long memberId) {
-		return ApiResult.success("회원정보가 조회 되었습니다.", memberService.getMemberInfo(memberId));
-	}
-
 	/**
 	 * ============================== 운동기록 시작 ==============================
 	 */
-	@Operation(summary = "내 운동기록 목록 조회")
-	@GetMapping("/me/workout-histories")
-	public ApiResult<CustomPaging> getWorkoutHistory(String searchDate,
-		Pageable pageable,
-		@AuthenticationPrincipal CustomMemberDetails loginMember) {
-		return ApiResult.success("운동기록이 조회되었습니다.", workoutService.getWorkoutHistory(loginMember.getMember(), loginMember.getMemberId(), pageable, searchDate));
-	}
-
 	@Operation(summary = "학생의 운동기록 목록 조회")
 	@GetMapping("/{memberId}/workout-histories")
 	public ApiResult<CustomPaging> getWorkoutHistory(@PathVariable Long memberId, String searchDate,
@@ -97,14 +83,6 @@ public class MemberController {
 		String searchDate,
 		Pageable pageable) {
 		return ApiResult.success("식단기록 조회되었습니다.", dietService.getDiet(loginMember.getMemberId(), memberId, pageable, searchDate));
-	}
-
-	@Operation(summary = "내 트레이너가 관리하는 학생들의 식단기록 목록 조회하기")
-	@GetMapping("/my-trainer/diets")
-	public ApiResult<CustomPaging<DietDto>> getDietMyTrainer(String searchDate,
-		Pageable pageable,
-		@AuthenticationPrincipal CustomMemberDetails loginMember) {
-		return ApiResult.success("식단기록 조회되었습니다.", dietService.getDietMyTrainer(loginMember.getMemberId(), pageable, searchDate));
 	}
 
 	/**

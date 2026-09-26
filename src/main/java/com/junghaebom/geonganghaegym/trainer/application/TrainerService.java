@@ -5,9 +5,7 @@ import static com.junghaebom.geonganghaegym.common.error.ErrorCode.*;
 import static com.junghaebom.geonganghaegym.member.domain.MemberType.*;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -18,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.junghaebom.geonganghaegym.common.Utils;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
-import com.junghaebom.geonganghaegym.common.redis.RedisKeyPrefix;
-import com.junghaebom.geonganghaegym.common.redis.RedisService;
 import com.junghaebom.geonganghaegym.course.application.CourseService;
 import com.junghaebom.geonganghaegym.course.presentation.dto.CourseDto;
 import com.junghaebom.geonganghaegym.course.presentation.dto.in.CourseAddCommand;
@@ -47,7 +43,6 @@ import com.junghaebom.geonganghaegym.trainer.respository.TrainerMemberMappingRep
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -55,8 +50,6 @@ import tools.jackson.databind.ObjectMapper;
 @Slf4j
 public class TrainerService {
 
-	private final RedisService redisService;
-	private final ObjectMapper objectMapper;
 	private final MemberRepository memberRepository;
 	private final TrainerMemberMappingRepository mappingRepository;
 	private final DietService dietService;
@@ -105,35 +98,6 @@ public class TrainerService {
 		//수강권 등록
 		courseService.addCourseByNonmember(trainerId, CourseAddCommand.create(memberId, command.lessonCnt()),
 			nonmember);
-	}
-
-	public MemberInviteResultCommand inviteMember(MemberInviteCommand command, Member trainer) {
-		memberRepository.findByIdAndMemberTypeAndDelYnFalse(trainer.getId(), TRAINER)
-			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
-
-		String name = command.name();
-		validateName(name);
-		int lessonCnt = command.lessonCnt();
-		if (lessonCnt < 1)
-			throw new CustomException(LESSON_CNT_NOT_VALID);
-		if (500 < lessonCnt)
-			throw new CustomException(LESSON_CNT_MAX);
-
-		String uuid = System.currentTimeMillis() + "-" + UUID.randomUUID();
-		String invitationKey = RedisKeyPrefix.INVITATION.getDescription() + uuid;
-		String invitationLink = WEB_BASE_URL + "/invite?type={type}&uuid={uuid}"
-			.replace("{type}", STUDENT.getCode().toLowerCase())
-			.replace("{uuid}", uuid);
-
-		Map<String, String> invitedMapping = new HashMap<>() {{
-			put("trainerId", trainer.getId().toString());
-			put("name", name);
-			put("lessonCnt", String.valueOf(lessonCnt));
-		}};
-		redisService.setValuesWithTimeout(invitationKey, objectMapper.writeValueAsString(invitedMapping), ONE_DAY); // 1days
-		MemberInviteResultCommand response = new MemberInviteResultCommand(uuid, invitationLink);
-		log.info("[학생 초대] trainer: {}, request: {}, response{}", trainer, command, response);
-		return response;
 	}
 
 	public MemberInviteResultCommand inviteNonmember(MemberInviteCommand command, Member trainer) {
