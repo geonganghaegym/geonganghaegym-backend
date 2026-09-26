@@ -56,22 +56,6 @@ public class StudentScheduleRepositoryImpl implements StudentScheduleRepositoryC
 	}
 
 	@Override
-	public List<ScheduleCommandResult> findAllByApplicantId(Long memberId) {
-		QMember trainer = new QMember("trainer");
-		List<Schedule> fetch = queryFactory
-			.select(schedule)
-			.from(schedule)
-			.leftJoin(schedule.trainer, trainer).fetchJoin()
-			.leftJoin(schedule.scheduleWaiting, scheduleWaiting).fetchJoin()
-			.where(scheduleApplicantIdEq(memberId))
-			.orderBy(schedule.lessonDt.desc(), schedule.lessonStartTime.asc())
-			.fetch();
-		return fetch.stream()
-			.map(ScheduleCommandResult::from)
-			.collect(toList());
-	}
-
-	@Override
 	public List<MyReservation> findNewReservation(Long memberId, StudentScheduleCond searchCond) {
 		List<Schedule> schedules = queryFactory.select(schedule)
 			.from(schedule)

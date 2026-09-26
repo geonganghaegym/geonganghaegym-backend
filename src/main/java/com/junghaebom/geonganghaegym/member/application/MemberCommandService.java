@@ -300,13 +300,6 @@ public class MemberCommandService {
 		return true;
 	}
 
-	public Boolean changeTrainerFeedback(AlarmStatus alarmStatus, Long memberId) {
-		Member member = memberRepository.findById(memberId)
-			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
-		member.changeTrainerFeedback(alarmStatus);
-		return true;
-	}
-
 	private void validateName(String name) {
 		if (Utils.validateNameLength(name)) {
 			throw new CustomException(MEMBER_NAME_LENGTH_NOT_VALID);

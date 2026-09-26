@@ -10,7 +10,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,11 +22,9 @@ import com.junghaebom.geonganghaegym.ApiResult;
 import com.junghaebom.geonganghaegym.config.security.CustomMemberDetails;
 import com.junghaebom.geonganghaegym.diet.application.DietService;
 import com.junghaebom.geonganghaegym.diet.presentation.dto.DietDto;
-import com.junghaebom.geonganghaegym.member.application.MemberCommandService;
 import com.junghaebom.geonganghaegym.member.presentation.dto.MemberDto;
 import com.junghaebom.geonganghaegym.member.repository.dto.MemberDetailResult;
 import com.junghaebom.geonganghaegym.member.repository.dto.MemberInTeamResult;
-import com.junghaebom.geonganghaegym.member.domain.AlarmStatus;
 import com.junghaebom.geonganghaegym.schedule.application.StudentScheduleService;
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.in.StudentScheduleCond;
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.out.MyReservationResponse;
@@ -52,17 +49,7 @@ public class TrainerController {
 
 	private final TrainerService trainerService;
 	private final StudentScheduleService studentScheduleService;
-	private final MemberCommandService memberCommandService;
 	private final DietService dietService;
-
-	@Operation(summary = "트레이너가 학생 초대하기")
-	@PostMapping("/invitation")
-	@PreAuthorize("hasAuthority('ROLE_TRAINER')")
-	public ApiResult<MemberInviteResultCommand> inviteMember(
-		@AuthenticationPrincipal CustomMemberDetails customMemberDetails,
-		@RequestBody MemberInviteCommand command) {
-		return ApiResult.success("회원초대가 완료 되었습니다.", trainerService.inviteMember(command, customMemberDetails.getMember()));
-	}
 
 	@Operation(summary = "트레이너가 미가입 학생 직접 등록하기")
 	@PostMapping("/nonmember")
@@ -126,15 +113,6 @@ public class TrainerController {
 		@RequestParam(required = false, defaultValue = "memberId") String sortValue,
 		Pageable pageable) {
 		return ApiResult.success("트레이너가 가입된 학생을 조회하였습니다.", trainerService.findAllUnattachedMembers(customMemberDetails.getMember(), searchValue, sortValue, pageable));
-	}
-
-	@Operation(summary = "수업 기록 여부를 변경한다.", description = "트레이너가 사용하는 수업기록여부를 변경한다.")
-	@PatchMapping("/trainer-feedback")
-	@PreAuthorize("hasAuthority('ROLE_TRAINER')")
-	public ApiResult<Boolean> changeTrainerFeedback(@Parameter(description = "변경할 수업 기록 상태", example = "ENABLED")
-		@RequestParam AlarmStatus alarmStatus,
-		@AuthenticationPrincipal CustomMemberDetails member) {
-		return ApiResult.success("수업 기록 여부가 변경되었습니다.", memberCommandService.changeTrainerFeedback(alarmStatus, member.getMemberId()));
 	}
 
 	@Operation(summary = "트레이너가 관리하는 학생들의 식단기록 목록 조회하기")

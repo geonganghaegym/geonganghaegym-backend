@@ -305,14 +305,6 @@ public class DietService {
 			});
 	}
 
-	public CustomPaging<DietDto> getDietMyTrainer(Long studentId, Pageable pageable, String searchDate) {
-		TrainerMemberMapping mapping = mappingRepository.findTop1ByMemberIdOrderByCreatedAtDesc(studentId)
-			.orElseThrow(() -> new CustomException(TRAINER_NOT_MAPPED));
-		Member trainer = memberRepository.findByIdAndMemberTypeAndDelYnFalse(mapping.getTrainer().getId(), TRAINER)
-			.orElseThrow(() -> new CustomException(TRAINER_NOT_FOUND));
-		return getDietByTrainer(trainer.getId(), pageable, searchDate);
-	}
-
 	public CustomPaging<DietDto> getDietByTrainer(Long trainerId, Pageable pageable, String searchDate) {
 		Member trainer = memberRepository.findByIdAndMemberTypeAndDelYnFalse(trainerId, TRAINER)
 			.orElseThrow(() -> new CustomException(TRAINER_NOT_FOUND));
