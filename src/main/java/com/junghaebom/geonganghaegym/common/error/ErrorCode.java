@@ -81,6 +81,7 @@ public enum ErrorCode {
 	SOCIAL_EMAIL_NOT_PROVIDED(BAD_REQUEST, "C_076", "이메일 제공에 동의해야 소셜 로그인을 완료할 수 있어요."),
 	APPLE_ID_TOKEN_NOT_VALID(BAD_REQUEST, "C_077", "애플 로그인 정보가 유효하지 않습니다. 다시 시도해 주세요."),
 	COMPLIMENTARY_ACCOUNT_NOT_MODIFIABLE(FORBIDDEN, "C_078", "체험 계정은 탈퇴하거나 계정 정보를 바꿀 수 없어요."),
+	FILE_PATH_NOT_VALID(BAD_REQUEST, "C_079", "파일 경로가 올바르지 않습니다."),
 
 	SERVER_ERROR(INTERNAL_SERVER_ERROR, "S_001", "서버에서 오류가 발생하였습니다."),
 	FILE_UPLOAD_ERROR(INTERNAL_SERVER_ERROR, "S_002", "파일 업로드중 에러가 발생하였습니다."),

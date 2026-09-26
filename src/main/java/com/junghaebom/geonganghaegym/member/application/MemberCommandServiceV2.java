@@ -28,6 +28,7 @@ public class MemberCommandServiceV2 {
 	public RegisterMemberProfileResult registerProfile(CommandRegisterMemberProfile request, Long memberId) {
 		Member findMember = memberRepository.findMemberById(memberId)
 			.orElseThrow(() -> new CustomException(MEMBER_NOT_FOUND));
+		findMember.validateModifiableAccount();
 
 		if (ObjectUtils.isEmpty(request)) {
 			throw new IllegalArgumentException("프로필 사진을 등록해 주세요.");

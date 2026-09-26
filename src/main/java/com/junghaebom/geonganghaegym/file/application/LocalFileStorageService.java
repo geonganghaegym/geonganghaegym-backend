@@ -40,7 +40,7 @@ public class LocalFileStorageService {
 
 	public String store(String filePath, InputStream inputStream) {
 		try {
-			Path targetPath = rootPath.resolve(filePath).normalize();
+			Path targetPath = resolve(filePath);
 			Files.createDirectories(targetPath.getParent());
 			Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
 			return getFileUrl(filePath);
@@ -52,8 +52,12 @@ public class LocalFileStorageService {
 
 	public void copy(String sourcePath, String targetPath) {
 		try {
-			Path source = rootPath.resolve(sourcePath).normalize();
-			Path target = rootPath.resolve(targetPath).normalize();
+			// 복사 원본은 클라이언트가 보낸 URL에서 오므로 업로드 임시 폴더(temp/) 안으로만 허용한다
+			Path source = resolve(sourcePath);
+			if (!source.startsWith(rootPath.resolve("temp"))) {
+				throw new CustomException(ErrorCode.FILE_PATH_NOT_VALID);
+			}
+			Path target = resolve(targetPath);
 			Files.createDirectories(target.getParent());
 			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
@@ -64,12 +68,21 @@ public class LocalFileStorageService {
 
 	public void delete(String filePath) {
 		try {
-			Path target = rootPath.resolve(filePath).normalize();
+			Path target = resolve(filePath);
 			Files.deleteIfExists(target);
 		} catch (IOException e) {
 			log.error("파일 삭제 실패: {}", filePath, e);
 			throw new CustomException(ErrorCode.FILE_REMOVE_ERROR);
 		}
+	}
+
+	/** 경로가 업로드 루트 밖을 가리키면(../ 등) 거절한다. */
+	private Path resolve(String filePath) {
+		Path path = rootPath.resolve(filePath).normalize();
+		if (!path.startsWith(rootPath) || path.equals(rootPath)) {
+			throw new CustomException(ErrorCode.FILE_PATH_NOT_VALID);
+		}
+		return path;
 	}
 
 	public String getFileUrl(String filePath) {

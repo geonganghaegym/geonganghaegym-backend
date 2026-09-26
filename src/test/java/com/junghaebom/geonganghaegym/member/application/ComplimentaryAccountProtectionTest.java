@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.common.redis.RedisService;
 import com.junghaebom.geonganghaegym.file.application.LocalFileStorageService;
+import com.junghaebom.geonganghaegym.lessonhistory.presentation.dto.out.CommandUploadFileResult;
 import com.junghaebom.geonganghaegym.member.domain.Member;
 import com.junghaebom.geonganghaegym.member.domain.MemberType;
 import com.junghaebom.geonganghaegym.member.domain.SocialType;
@@ -29,6 +30,7 @@ import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeEma
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeMemberPassword;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandChangeName;
 import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandFindMemberPassword;
+import com.junghaebom.geonganghaegym.member.presentation.dto.in.CommandRegisterMemberProfile;
 import com.junghaebom.geonganghaegym.member.repository.MemberRepository;
 import com.junghaebom.geonganghaegym.trainer.respository.TrainerMemberMappingRepository;
 
@@ -192,6 +194,35 @@ class ComplimentaryAccountProtectionTest {
 
 			assertEquals(COMPLIMENTARY_ACCOUNT_NOT_MODIFIABLE, exception.getErrorCode());
 			assertEquals(originalEmail, demo.getEmail());
+		}
+	}
+
+	@Nested
+	@DisplayName("MemberCommandServiceV2")
+	class CommandServiceV2 {
+
+		@Mock
+		private MemberRepository memberRepository;
+		@Mock
+		private LocalFileStorageService fileStorageService;
+		@InjectMocks
+		private MemberCommandServiceV2 memberCommandServiceV2;
+
+		@ParameterizedTest
+		@ValueSource(strings = {"healthy-trainer0", "healthy-student0"})
+		@DisplayName("체험 계정은 V2로도 프로필 사진을 등록할 수 없다")
+		void registerProfile_complimentary(String userId) {
+			Member demo = member(userId);
+			when(memberRepository.findMemberById(1L)).thenReturn(Optional.of(demo));
+			CommandRegisterMemberProfile request = new CommandRegisterMemberProfile(
+				new CommandUploadFileResult("https://x/files/temp/a.png", 1));
+
+			CustomException exception = assertThrows(CustomException.class,
+				() -> memberCommandServiceV2.registerProfile(request, 1L));
+
+			assertEquals(COMPLIMENTARY_ACCOUNT_NOT_MODIFIABLE, exception.getErrorCode());
+			assertNull(demo.getMemberProfile());
+			verifyNoInteractions(fileStorageService);
 		}
 	}
 
