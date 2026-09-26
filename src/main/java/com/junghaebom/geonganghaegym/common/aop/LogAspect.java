@@ -1,5 +1,7 @@
 package com.junghaebom.geonganghaegym.common.aop;
 
+import java.util.Arrays;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -20,10 +22,21 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class LogAspect {
 
+	private static final Pattern SENSITIVE_NAME = Pattern.compile("(?i).*(password|token|secret).*");
+	// record·Lombok toString의 "필드명=값" 중 민감한 필드의 값. 값은 다음 ", 필드명=" 또는 닫는 괄호 앞까지로 본다
+	private static final Pattern SENSITIVE_FIELD = Pattern.compile(
+		"(?i)(\\w*(?:password|token|secret)\\w*)=(.*?)(?=, \\w+=|[)\\]]|$)");
+	private static final String MASK = "****";
+
 	private static String getParameters(HttpServletRequest request) {
 		return request.getParameterMap().entrySet().stream()
-			.map(entry -> String.format("%s: (%s)", entry.getKey(), Joiner.on(",").join(entry.getValue())))
+			.map(entry -> String.format("%s: (%s)", entry.getKey(),
+				SENSITIVE_NAME.matcher(entry.getKey()).matches() ? MASK : Joiner.on(",").join(entry.getValue())))
 			.collect(Collectors.joining(", "));
+	}
+
+	static String mask(String text) {
+		return SENSITIVE_FIELD.matcher(text).replaceAll("$1=" + MASK);
 	}
 
 	@Pointcut("bean(*Controller)")
@@ -39,7 +52,7 @@ public class LogAspect {
 		try {
 			log.info("Request: [{}] {}", request.getMethod(), request.getRequestURL());
 			log.info("[Parameters] {}", getParameters(request));
-			log.info("[Args] {}", joinPoint.getArgs());
+			log.info("[Args] {}", mask(Arrays.toString(joinPoint.getArgs())));
 			return joinPoint.proceed();
 		} finally {
 			long end = System.currentTimeMillis();
