@@ -7,14 +7,15 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junghaebom.geonganghaegym.common.KotlinCustomPaging;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.notification.presentation.dto.out.CommandNotificationStatusResult;
 import com.junghaebom.geonganghaegym.notification.presentation.dto.out.RetrieveNotificationWithRedDotResult;
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.in.CommandRegisterSchedule;
 import com.junghaebom.geonganghaegym.schedule.presentation.dto.in.RetrieveTrainerScheduleByLessonInfo;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 class ApiContractSerializationTest {
 

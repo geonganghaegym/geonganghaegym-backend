@@ -1,4 +1,7 @@
 spring:
+  jackson:
+    # Boot 4(Jackson 3) 기본값 대신 Boot 3(Jackson 2) 시절 기본값으로 API 직렬화 계약을 유지한다.
+    use-jackson2-defaults: true
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}

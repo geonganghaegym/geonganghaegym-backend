@@ -27,10 +27,10 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.common.redis.RedisService;
 import com.junghaebom.geonganghaegym.config.OAuthProperties;
+import com.junghaebom.geonganghaegym.config.WebClientConfig;
 import com.junghaebom.geonganghaegym.config.OAuthProperties.OAuthServiceProperties;
 import com.junghaebom.geonganghaegym.config.jwt.JwtTokenGenerator;
 import com.junghaebom.geonganghaegym.course.application.CourseService;
@@ -46,6 +46,8 @@ import com.junghaebom.geonganghaegym.member.repository.NonMemberRepository;
 import com.junghaebom.geonganghaegym.trainer.application.TrainerService;
 
 import reactor.core.publisher.Mono;
+
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * 구글/카카오 소셜 로그인이 id_token 파싱에 의존하지 않고 사용자 정보 API로 동작하는지 검증한다.
@@ -395,7 +397,7 @@ class SocialLoginTest {
 				.findFirst()
 				.orElseThrow(() -> new AssertionError("스텁에 등록되지 않은 요청입니다: " + url));
 
-			return Mono.just(ClientResponse.create(HttpStatus.OK)
+			return Mono.just(ClientResponse.create(HttpStatus.OK, WebClientConfig.exchangeStrategies())
 				.header("Content-Type", "application/json")
 				.body(body)
 				.build());
