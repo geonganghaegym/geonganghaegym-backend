@@ -59,7 +59,7 @@ public class StudentScheduleService {
 			.collect(Collectors.toList());
 
 		List<ScheduleCommandResult> afternoon = schedule.stream()
-			.filter(s -> NOON.isBefore(s.lessonStartTime()))
+			.filter(s -> !s.lessonStartTime().isBefore(NOON))
 			.map(s -> isSoldOut(s) ? s.withReservationStatus(SOLD_OUT) : s)
 			.collect(Collectors.toList());
 
