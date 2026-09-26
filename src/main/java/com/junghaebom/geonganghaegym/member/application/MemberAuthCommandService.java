@@ -192,13 +192,13 @@ public class MemberAuthCommandService {
 	}
 
 	public Tokens refreshToken(CommandRefreshToken request) {
-		String result = redisService.getValues(request.userId());
+		String ownerUserId = redisService.getValues(JwtTokenGenerator.refreshTokenKey(request.refreshToken()));
 
-		if (isEmpty(result)) {
+		if (isEmpty(ownerUserId)) {
 			throw new CustomException(REFRESH_TOKEN_NOT_FOUND);
 		}
 
-		if (!result.equals(request.refreshToken())) {
+		if (!ownerUserId.equals(request.userId())) {
 			throw new CustomException(REFRESH_TOKEN_NOT_VALID);
 		}
 
