@@ -40,8 +40,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -95,6 +93,9 @@ import com.junghaebom.geonganghaegym.trainer.application.TrainerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -706,7 +707,7 @@ public class MemberAuthCommandService {
 		HashMap<String, String> map = new HashMap<>();
 		try {
 			map = objectMapper.readValue(mappedData, HashMap.class);
-		} catch (JsonProcessingException e) {
+		} catch (JacksonException e) {
 			log.error("error", e);
 		}
 		return map;

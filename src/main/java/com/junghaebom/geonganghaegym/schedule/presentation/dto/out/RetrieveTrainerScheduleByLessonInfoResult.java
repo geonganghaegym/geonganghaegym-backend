@@ -8,11 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.junghaebom.geonganghaegym.common.LessonDetailResultSerializer;
 import com.junghaebom.geonganghaegym.common.LessonTimeFormatter;
 import com.junghaebom.geonganghaegym.schedule.domain.ReservationStatus;
 import com.junghaebom.geonganghaegym.schedule.domain.Schedule;
+
+import tools.jackson.databind.annotation.JsonSerialize;
 
 public record RetrieveTrainerScheduleByLessonInfoResult(
 	String trainerName,

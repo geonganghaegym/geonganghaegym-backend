@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.json.simple.JSONObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -48,6 +47,8 @@ import com.junghaebom.geonganghaegym.trainer.respository.TrainerMemberMappingRep
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import tools.jackson.databind.ObjectMapper;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -55,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 public class TrainerService {
 
 	private final RedisService redisService;
+	private final ObjectMapper objectMapper;
 	private final MemberRepository memberRepository;
 	private final TrainerMemberMappingRepository mappingRepository;
 	private final DietService dietService;
@@ -128,7 +130,7 @@ public class TrainerService {
 			put("name", name);
 			put("lessonCnt", String.valueOf(lessonCnt));
 		}};
-		redisService.setValuesWithTimeout(invitationKey, JSONObject.toJSONString(invitedMapping), ONE_DAY); // 1days
+		redisService.setValuesWithTimeout(invitationKey, objectMapper.writeValueAsString(invitedMapping), ONE_DAY); // 1days
 		MemberInviteResultCommand response = new MemberInviteResultCommand(uuid, invitationLink);
 		log.info("[학생 초대] trainer: {}, request: {}, response{}", trainer, command, response);
 		return response;
