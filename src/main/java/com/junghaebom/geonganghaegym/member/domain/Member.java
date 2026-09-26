@@ -1,5 +1,6 @@
 package com.junghaebom.geonganghaegym.member.domain;
 
+import static com.junghaebom.geonganghaegym.common.error.ErrorCode.COMPLIMENTARY_ACCOUNT_NOT_MODIFIABLE;
 import static com.junghaebom.geonganghaegym.member.domain.AlarmStatus.*;
 import static com.junghaebom.geonganghaegym.member.domain.MemberType.*;
 import static com.junghaebom.geonganghaegym.member.domain.SocialType.NONE;
@@ -11,6 +12,7 @@ import static lombok.AccessLevel.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -18,6 +20,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicUpdate;
 
 import com.junghaebom.geonganghaegym.common.BaseTimeEntity;
+import com.junghaebom.geonganghaegym.common.error.CustomException;
 import com.junghaebom.geonganghaegym.gym.domain.Gym;
 import com.junghaebom.geonganghaegym.push.domain.MemberToken;
 import com.junghaebom.geonganghaegym.schedule.domain.Schedule;
@@ -45,6 +48,12 @@ import lombok.ToString;
 @DynamicUpdate
 @ToString
 public class Member extends BaseTimeEntity<Member, Long> {
+
+	// 체험하기 버튼이 로그인하는 공유 계정. 프론트 entity/auth의 체험 계정 ID와 맞춘다.
+	private static final Set<String> COMPLIMENTARY_ACCOUNT_USER_IDS = Set.of(
+		"healthy-trainer0",
+		"healthy-student0"
+	);
 
 	@OneToMany(fetch = LAZY, mappedBy = "member")
 	@Builder.Default
@@ -184,6 +193,18 @@ public class Member extends BaseTimeEntity<Member, Long> {
 
 	public void registerGym(Gym gym) {
 		this.gym = gym;
+	}
+
+	public boolean isComplimentaryAccount() {
+		return COMPLIMENTARY_ACCOUNT_USER_IDS.contains(userId);
+	}
+
+	// 여러 사람이 공유하는 체험 계정이 탈퇴되거나 비밀번호가 바뀌면 모두의 체험하기가 막히고,
+	// 프로필·이름·이메일이 바뀌면 다음 체험자가 남이 바꾼 정보를 보게 된다.
+	public void validateModifiableAccount() {
+		if (isComplimentaryAccount()) {
+			throw new CustomException(COMPLIMENTARY_ACCOUNT_NOT_MODIFIABLE);
+		}
 	}
 
 	public void deleteMember() {
