@@ -40,10 +40,14 @@ public class MemberCommandServiceV2 {
 		fileStorageService.copy(tempFilePath, originPath);
 
 		String fileUrl = fileStorageService.getFileUrl(originPath);
+		String oldFileUrl = findMember.getMemberProfile() == null ? null : findMember.getMemberProfile().getFileUrl();
 
 		log.info("등록한 fileUrl: {}", fileUrl);
 
 		findMember.registerProfile(fileName, fileUrl);
+		if (oldFileUrl != null) {
+			fileStorageService.delete(fileStorageService.extractFilePath(oldFileUrl));
+		}
 
 		return RegisterMemberProfileResult.from(fileUrl, fileName);
 	}
